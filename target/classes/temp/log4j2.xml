@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- https://www.cnblogs.com/hafiz/p/6170701.html-->
+<Configuration status="INFO" name="MyApp">
+	<Properties>
+		<!--日志文件保存的路径-->
+		<property name="filePath" value="src/logs/$${date:MM-dd-HH-mm-ss}-untitled.log"/>
+		<property name="filePath_onlyOne" value="src/logs/untitled.log"/>
+		<!--日志文件归档后保存的压缩文件路径-->
+		<property name="filePattern" value="src/logs/$${date:yyyy-MM}/untitled-%d{yyyy-MM-dd-HH}-%i.log.zip"/>
+		<!--日志文档超过多大时执行翻转（即：将旧文件压缩，并用新日志文件记录）-->
+		<property name="maxSize" value="100 MB"/>
+		<!--记录的日志文件超过多少时，旧文件会被删除-->
+		<property name="maxFile" value="10"/>
+		<!--打印日志的时候是否标注日志在项目的位置信息-->
+		<property name="useLocation" value="true"/>
+		<!--日志输出格式-->
+		<property name="layoutPattern" value="%date %p %c{1.} [%thread] %location %message %exception%n"/>
+	</Properties>
+	<Appenders>
+		<Console name="Console" target="SYSTEM_OUT">
+			<PatternLayout pattern="${layoutPattern}"/>
+		</Console>
+<!--		-->
+		<RollingRandomAccessFile name="File" fileName="${filePath}" filePattern="${filePattern}">
+			<PatternLayout pattern="${layoutPattern}"/>
+			<Policies>
+				<!--基于时间的归档，一般不使用-->
+				<!--这个6基于filePattern归档文件的时间，本文件归档的filePattern最后的HH表示小时，因此此文件每6个小时进行一次归档-->
+				<!-- <TimeBasedTriggeringPolicy interval="6" modulate="true"/>-->
+				<!--基于文件大小的归档-->
+				<SizeBasedTriggeringPolicy size="${maxSize}"/>
+			</Policies>
+			<DefaultRolloverStrategy max="${maxFile}"/>
+		</RollingRandomAccessFile>
+		
+		<RollingRandomAccessFile name="OneFile" fileName="${filePath_onlyOne}" filePattern="${filePattern}">
+			<PatternLayout pattern="${layoutPattern}"/>
+			<Policies>
+				<!--基于文件大小的归档-->
+				<SizeBasedTriggeringPolicy size="${maxSize}"/>
+			</Policies>
+			<DefaultRolloverStrategy max="${maxFile}"/>
+		</RollingRandomAccessFile>
+	</Appenders>
+	<!--这个只能自行配置了-->
+	<Loggers>
+		<!--异步日志Root（与同步Root之间只能存在一个）-->
+<!--		<AsyncRoot level="DEBUG" includeLocation="${useLocation}">-->
+<!--			<AppenderRef ref="Console"/>-->
+<!--			<AppenderRef ref="File"/>-->
+<!--		</AsyncRoot>-->
+<!--		        同步Root-->
+		<Root level="DEBUG" >
+			<AppenderRef ref="File"/>
+			<AppenderRef ref="Console"/>
+		</Root>
+		<!--异步日志(与同步日志可同时存在)-->
+		<!--name属性值请自定义-->
+<!--		<AsyncLogger name="AsyncLogger" level="DEBUG" includeLocation="${useLocation}" additivity="false">-->
+<!--			<AppenderRef ref="File"/>-->
+<!--		</AsyncLogger>-->
+<!--		同步日志-->
+<!--		<Logger name="com.memoforward.dao" level="DEBUG" includeLocation="${useLocation}" additivity="false">-->
+<!--			<AppenderRef ref="Console"/>-->
+<!--		</Logger>-->
+	</Loggers>
+</Configuration>
