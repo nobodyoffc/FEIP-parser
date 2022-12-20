@@ -1,0 +1,43 @@
+
+{
+	"mappings": {
+		"properties": {
+			"id": {
+				"type": "keyword"
+			},
+			"height": {
+				"type": "long"
+			},
+			"index": {
+				"type": "short"
+			},
+			"time": {
+				"type": "long"
+			},
+			"addr": {
+				"type": "wildcard"
+			},
+			"feipNum": {
+				"type": "short"
+			},
+			"feipVer": {
+				"type": "short"
+			},
+			"op": {
+				"type": "text"
+			},
+			"name": {
+				"type": "text"
+			},
+			"master": {
+				"type": "wildcard"
+			},
+			"homepage": {
+				"type": "text"
+			},
+			"noticeFee": {
+				"type": "long"
+			}
+		}
+	}
+}

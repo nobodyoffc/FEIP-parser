@@ -143,26 +143,26 @@ public class EsTools {
 	
 	public static BulkResponse bulkDeleteList(ElasticsearchClient esClient,String index, ArrayList<String> idList) throws Exception
 			 {
-		if(idList==null) return null;
-		if(idList.isEmpty())return null;
+		if(idList==null || idList.isEmpty()) return null;
+
 		BulkResponse response = null;
 		
-		Iterator<String> iterId = idList.iterator();
-		for(int i=0;i<(Math.ceil(idList.size()/READ_MAX));i++) {
+		BulkRequest.Builder br = new BulkRequest.Builder();
+		br.timeout(t->t.time("600s"));	
+		
+		for(int i=0;i<idList.size();i++) {
+			String id = idList.get(i);
+			br.operations(op->op.delete(in->in
+					.index(index)
+					.id(id)));
 			
-			BulkRequest.Builder br = new BulkRequest.Builder();
-			
-			for(int j = 0; j< READ_MAX && i*READ_MAX+j<idList.size();j++) {
-				String tid = iterId.next();
-				br.operations(op->op.delete(in->in
-						.index(index)
-						.id(tid)));
-			}
-			br.timeout(t->t.time("600s"));			
-			response = esClient.bulk(br.build());
-			
-			if(response.errors()) return response;
+			if(i!=0 && i % WRITE_MAX ==0) {
+				response = esClient.bulk(br.build());
+			}	
 		}
+		
+		response = esClient.bulk(br.build());
+		
 		return response;
 	}
 	

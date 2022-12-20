@@ -14,6 +14,7 @@ import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.ElasticsearchException;
 import esClient.StartClient;
 
+
 public class Start {
 	
 	private static int MenuItemsNum =5;
@@ -76,7 +77,7 @@ public class Start {
 				}
 				break;
 			case 3: 
-				more = startNewFromFile(esClient,path,bestHeight);
+				more = startNewFromFile(esClient,path);
 				break;
 			case 4: 
 				more = restartFromFile(esClient,path,bestHeight);
@@ -111,7 +112,7 @@ public class Start {
 		return choice;
 	}
 	
-	private static ElasticsearchClient creatHttpClient(Configer configer) throws ElasticsearchException, IOException {
+	private static ElasticsearchClient creatHttpClient(start.Configer configer) throws ElasticsearchException, IOException {
 		// TODO Auto-generated method stub
 		System.out.println("creatHttpClient");
 
@@ -145,8 +146,15 @@ public class Start {
 		return esClient;
 	}
 
-	private static boolean startNewFromFile(ElasticsearchClient esClient, String path, long bestHeight) {
+	private static boolean startNewFromFile(ElasticsearchClient esClient, String path) {
+		
+//		if(esClient==null) {
+//			System.out.println("Create a Java client for ES first.");
+//			return false;
+//		}
+		
 		System.out.println("startNewFromFile.");
+
 		return true;
 		// TODO Auto-generated method stub
 	}

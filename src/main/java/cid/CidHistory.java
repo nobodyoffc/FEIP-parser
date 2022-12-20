@@ -2,24 +2,25 @@ package cid;
 
 public class CidHistory {
 	
-	private String txid;
+	private String id;
 	private long height;
 	private int index;
 	private long time;
-	private String addr;
-	private int feipNum;
-	private int feipVer;
-	private String op;
-	private String name;
-	private String master;
-	private String homepage[];
-	private String noticeFee;
+	private String type;
+	private String sn;
+	private String ver;
+	private String signer;
+	private String data_op;
+	private String data_name;
 	
-	public String getTxid() {
-		return txid;
+	private String data_master;
+	private String[] data_homepages;
+	private double data_noticeFee;
+	public String getId() {
+		return id;
 	}
-	public void setTxid(String txid) {
-		this.txid = txid;
+	public void setId(String id) {
+		this.id = id;
 	}
 	public long getHeight() {
 		return height;
@@ -39,54 +40,60 @@ public class CidHistory {
 	public void setTime(long time) {
 		this.time = time;
 	}
-	public String getAddr() {
-		return addr;
+	public String getType() {
+		return type;
 	}
-	public void setAddr(String addr) {
-		this.addr = addr;
+	public void setType(String type) {
+		this.type = type;
 	}
-	public int getFeipNum() {
-		return feipNum;
+	public String getSn() {
+		return sn;
 	}
-	public void setFeipNum(int feipNum) {
-		this.feipNum = feipNum;
+	public void setSn(String sn) {
+		this.sn = sn;
 	}
-	public int getFeipVer() {
-		return feipVer;
+	public String getVer() {
+		return ver;
 	}
-	public void setFeipVer(int feipVer) {
-		this.feipVer = feipVer;
+	public void setVer(String ver) {
+		this.ver = ver;
 	}
-	public String getOp() {
-		return op;
+	public String getSigner() {
+		return signer;
 	}
-	public void setOp(String op) {
-		this.op = op;
+	public void setSigner(String signer) {
+		this.signer = signer;
 	}
-	public String getName() {
-		return name;
+	public String getData_op() {
+		return data_op;
 	}
-	public void setName(String name) {
-		this.name = name;
+	public void setData_op(String data_op) {
+		this.data_op = data_op;
 	}
-	public String getMaster() {
-		return master;
+	public String getData_name() {
+		return data_name;
 	}
-	public void setMaster(String master) {
-		this.master = master;
+	public void setData_name(String data_name) {
+		this.data_name = data_name;
 	}
-	public String[] getHomepage() {
-		return homepage;
+	public String getData_master() {
+		return data_master;
 	}
-	public void setHomepage(String[] homepage) {
-		this.homepage = homepage;
+	public void setData_master(String data_master) {
+		this.data_master = data_master;
 	}
-	public String getNoticeFee() {
-		return noticeFee;
+	public String[] getData_homepages() {
+		return data_homepages;
 	}
-	public void setNoticeFee(String noticeFee) {
-		this.noticeFee = noticeFee;
+	public void setData_homepages(String[] data_homepage) {
+		this.data_homepages = data_homepage;
 	}
-	
-	
+	public double getData_noticeFee() {
+		return data_noticeFee;
+	}
+	public void setData_noticeFee(double d) {
+		this.data_noticeFee = d;
+	}
+
+
 }

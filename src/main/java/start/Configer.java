@@ -29,6 +29,11 @@ public class Configer {
 			String configJson = new String(configJsonBytes);
 			config = gson.fromJson(configJson, Configer.class);
 			
+			if(config==null) {
+				fis.close();
+				return;
+			}
+			
 			ip = config.getIp();
 			port = config.getPort();
 			path = config.getPath();

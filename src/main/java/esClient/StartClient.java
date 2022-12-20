@@ -21,6 +21,7 @@ import co.elastic.clients.elasticsearch._types.ElasticsearchException;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
 import start.Configer;
+import start.Start;
 
 public class StartClient{
 	
@@ -30,7 +31,7 @@ public class StartClient{
 	
 	static final Logger log = LoggerFactory.getLogger(StartClient.class);
 
-	public ElasticsearchClient getClientHttp(Configer configer) throws ElasticsearchException, IOException {
+	public ElasticsearchClient getClientHttp(start.Configer configer) throws ElasticsearchException, IOException {
 		
 		System.out.println("Creating a client...");
 		

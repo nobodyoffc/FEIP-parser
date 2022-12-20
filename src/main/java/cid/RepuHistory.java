@@ -1,19 +1,21 @@
 package cid;
 
 public class RepuHistory {
-	private String txid;
+	private String id;
 	private long height;
 	private int index;
 	private long time;
 	
 	private String ratee;
 	private String rater;
-	private long value;
-	public String getTxid() {
-		return txid;
+	private long reputation;
+	private long hot;
+	
+	public String getId() {
+		return id;
 	}
-	public void setTxid(String txid) {
-		this.txid = txid;
+	public void setId(String id) {
+		this.id = id;
 	}
 	public long getHeight() {
 		return height;
@@ -45,13 +47,17 @@ public class RepuHistory {
 	public void setRater(String rater) {
 		this.rater = rater;
 	}
-	public long getValue() {
-		return value;
+	public long getReputation() {
+		return reputation;
 	}
-	public void setValue(long value) {
-		this.value = value;
+	public void setReputation(long reputation) {
+		this.reputation = reputation;
 	}
-	
+	public long getHot() {
+		return hot;
+	}
+	public void setHot(long hot) {
+		this.hot = hot;
+	}
 
-	
 }
