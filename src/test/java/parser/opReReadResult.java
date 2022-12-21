@@ -6,7 +6,7 @@ import data.OpReturn;
 
 public class opReReadResult {
 	private OpReturn opReturn;
-	private long length;
+	private int length;
 	private boolean fileEnd;
 	private boolean rollback;
 	
@@ -16,10 +16,10 @@ public class opReReadResult {
 	public void setOpReturn(OpReturn opReturn) {
 		this.opReturn = opReturn;
 	}
-	public long getLength() {
+	public int getLength() {
 		return length;
 	}
-	public void setLength(long length) {
+	public void setLength(int length) {
 		this.length = length;
 	}
 	public boolean isFileEnd() {

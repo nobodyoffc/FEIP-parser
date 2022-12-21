@@ -16,10 +16,11 @@ public class Indices {
 	
 	static final Logger log = LoggerFactory.getLogger(Indices.class);
 	
-
+	public static final String ParseMark = "parse_mark";
 	public static final String CidIndex = "cid";
 	public static final String CidHistIndex = "cid_history";
 	public static final String RepuHistIndex = "reputation_history";
+
 
 			
 	public static void createAllIndices(ElasticsearchClient esClient) throws ElasticsearchException, IOException {
@@ -32,11 +33,27 @@ public class Indices {
 		String cidMappingJsonStr = "{\"mappings\":{\"properties\":{\"cid\":{\"type\":\"wildcard\"},\"height\":{\"type\":\"long\"},\"homepage\":{\"type\":\"text\"},\"hot\":{\"type\":\"long\"},\"id\":{\"type\":\"keyword\"},\"master\":{\"type\":\"wildcard\"},\"noticeFee\":{\"type\":\"long\"},\"reputation\":{\"type\":\"long\"},\"usedCids\":{\"type\":\"wildcard\"}}}}";
 		String cidHistMappingJsonStr = "{\"mappings\":{\"properties\":{\"data_name\":{\"type\":\"wildcard\"},\"data_op\":{\"type\":\"wildcard\"},\"height\":{\"type\":\"long\"},\"id\":{\"type\":\"keyword\"},\"index\":{\"type\":\"short\"},\"noticeFee\":{\"type\":\"long\"},\"signer\":{\"type\":\"wildcard\"},\"sn\":{\"type\":\"short\"},\"time\":{\"type\":\"long\"},\"ver\":{\"type\":\"short\"}}}}";
 		String repuHistJsonStr = "{\"mappings\":{\"properties\":{\"height\":{\"type\":\"long\"},\"hot\":{\"type\":\"long\"},\"id\":{\"type\":\"keyword\"},\"index\":{\"type\":\"short\"},\"ratee\":{\"type\":\"wildcard\"},\"rater\":{\"type\":\"wildcard\"},\"reputation\":{\"type\":\"long\"},\"time\":{\"type\":\"long\"}}}}";		
+		String parseMarkJsonStr = "{\"mappings\":{\"properties\":{\"fileName\":{\"type\":\"wildcard\"},\"lastHeight\":{\"type\":\"long\"},\"lastId\":{\"type\":\"keyword\"},\"lastIndex\":{\"type\":\"long\"},\"length\":{\"type\":\"short\"},\"pointer\":{\"type\":\"long\"}}}}";		
 		InputStream cidJsonStrIs = new ByteArrayInputStream(cidMappingJsonStr.getBytes());
 		InputStream cidHistJsonStrIs = new ByteArrayInputStream(cidHistMappingJsonStr.getBytes());
 		InputStream repuHistJsonStrIs = new ByteArrayInputStream(repuHistJsonStr.getBytes());
+		InputStream parseMarkJsonStrIs = new ByteArrayInputStream(parseMarkJsonStr.getBytes());
 
 
+		try {
+			CreateIndexResponse req = esClient.indices().create(c -> c.index(Indices.ParseMark).withJson(parseMarkJsonStrIs));
+			parseMarkJsonStrIs.close();
+			if(req.acknowledged()) {
+				log.info("Index  parse_mark created.");
+			}else {
+				log.info("Index parse_mark creating failed.");
+				return;
+			}
+		}catch(ElasticsearchException e) {
+			log.info("Index parse_mark creating failed.",e);
+			return;
+		}
+		
 		try {
 			CreateIndexResponse req = esClient.indices().create(c -> c.index(Indices.CidIndex).withJson(cidJsonStrIs));
 			cidJsonStrIs.close();
@@ -88,6 +105,15 @@ public class Indices {
 			return;
 		}
 		
+		try {
+			DeleteIndexResponse req = esClient.indices().delete(c -> c.index(Indices.ParseMark));
+
+			if(req.acknowledged()) {
+			log.info("Index  parse_mark deleted.");
+			}
+		}catch(ElasticsearchException e) {
+			log.info("Index block_mark deleting failed.",e);
+		}
 		
 		try {
 			DeleteIndexResponse req = esClient.indices().delete(c -> c.index(Indices.CidIndex));

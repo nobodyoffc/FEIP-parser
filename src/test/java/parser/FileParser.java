@@ -3,6 +3,7 @@ package parser;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -49,6 +50,7 @@ import esClient.EsTools;
 import esClient.StartClient;
 import start.Configer;
 import startTest.Indices;
+import startTest.ParseMark;
 import tools.FchTools;
 import tools.Hash;
 import tools.ParseTools;
@@ -57,8 +59,9 @@ public class FileParser {
 	private String path = null;
 	private  String fileName = null;
 	private long pointer =0;
+	private int length =0;
 	private long lastHeight = 0;
-	private long lastIndex = 0;
+	private int lastIndex = 0;
 	private String lastId = null;
 	
 	enum FEIP_NAME{
@@ -69,23 +72,35 @@ public class FileParser {
 	
 	//private ElasticsearchClient esClient = null;
 	
-	public boolean parseFile(ElasticsearchClient esClient) throws Exception {
+	public boolean parseFile(ElasticsearchClient esClient, boolean isRollback) throws Exception {
 	
 		//this.esClient = esClient;
+		
+		if(isRollback)rollback(esClient, lastHeight);
+		
+		FileInputStream fis = openFile();
+		
+		pointer += length;
 
+		fis.skip(pointer);
+		
 		System.out.println("Start parse "+fileName+ " form "+pointer);
 		log.info("Start parse {} from {}",fileName,pointer);
 		
-		FileInputStream fis = openFile();
+		TimeUnit.SECONDS.sleep(5);
 		
 		boolean error = false;
 		
 		while(!error) {
 			
 			opReReadResult readOpResult = OpReFileTools.readOpReFromFile(fis);
-			pointer += readOpResult.getLength();
+			length = readOpResult.getLength();
+			pointer += length;
+			
+			boolean isValid= false;
 			
 			ParseTools.gsonPrint(readOpResult);
+
 			
 			if(readOpResult.isFileEnd()) {
 				if(pointer>251658240) {
@@ -116,6 +131,9 @@ public class FileParser {
 			}
 
 			OpReturn opre = readOpResult.getOpReturn();
+			lastHeight = opre.getHeight();
+			lastIndex = opre.getTxIndex();
+			lastId = opre.getId();
 			
 			Protocol prot = parseProtocol(opre);
 			if(prot==null)continue;
@@ -136,36 +154,36 @@ public class FileParser {
 				System.out.println("Cid.");
 				CidHistory cidHist = makeCid(opre,prot);	
 				if(cidHist==null)break;
-				boolean isValid = parseCidInfo(esClient,cidHist);	
+				isValid = parseCidInfo(esClient,cidHist);	
 				if(isValid)esClient.index(i->i.index(Indices.CidHistIndex).id(cidHist.getId()).document(cidHist));
 				break;
 			case MASTER:
 				System.out.println("master.");
 				CidHistory cidHist1 = makeMaster(opre,prot);
 				if(cidHist1==null)break;
-				boolean isValid1 = parseCidInfo(esClient,cidHist1);	
-				if(isValid1)esClient.index(i->i.index(Indices.CidHistIndex).id(cidHist1.getId()).document(cidHist1));
+				isValid = parseCidInfo(esClient,cidHist1);	
+				if(isValid)esClient.index(i->i.index(Indices.CidHistIndex).id(cidHist1.getId()).document(cidHist1));
 				break;
 			case HOMEPAGE:
 				System.out.println("homepage.");
 				CidHistory cidHist2 = makeHomepage(opre,prot);
 				if(cidHist2==null)break;
-				boolean isValid2 = parseCidInfo(esClient,cidHist2);	
-				if(isValid2)esClient.index(i->i.index(Indices.CidHistIndex).id(cidHist2.getId()).document(cidHist2));
+				isValid = parseCidInfo(esClient,cidHist2);	
+				if(isValid)esClient.index(i->i.index(Indices.CidHistIndex).id(cidHist2.getId()).document(cidHist2));
 				break;
 			case NOTICE_FEE:
 				System.out.println("notice fee.");
 				CidHistory cidHist3 = makeNoticeFee(opre,prot);
 				if(cidHist3==null)break;
-				boolean isValid3 = parseCidInfo(esClient,cidHist3);	
-				if(isValid3)esClient.index(i->i.index(Indices.CidHistIndex).id(cidHist3.getId()).document(cidHist3));
+				isValid = parseCidInfo(esClient,cidHist3);	
+				if(isValid)esClient.index(i->i.index(Indices.CidHistIndex).id(cidHist3.getId()).document(cidHist3));
 				break;
 			case REPUTATION:
 				System.out.println("reputation.");
 				RepuHistory repuHist = makeReputation(opre,prot);
 				if(repuHist==null)break;
-				boolean isValid4 = parseReputation(esClient,repuHist);
-				if(isValid4)esClient.index(i->i.index(Indices.RepuHistIndex).id(repuHist.getId()).document(repuHist));
+				isValid = parseReputation(esClient,repuHist);
+				if(isValid)esClient.index(i->i.index(Indices.RepuHistIndex).id(repuHist.getId()).document(repuHist));
 				break;
 			case SERVICE:
 				System.out.println("Service.");
@@ -174,10 +192,27 @@ public class FileParser {
 			default:
 				break;
 			}
+			
+			if(isValid)writeParseMark(esClient,readOpResult.getLength());
+
 		}
 		return error;
 	}
-
+	
+	private void writeParseMark(ElasticsearchClient esClient, int length) throws IOException {
+		// TODO Auto-generated method stub
+		ParseMark parseMark= new ParseMark();
+		
+		parseMark.setFileName(fileName);
+		parseMark.setPointer(pointer-length);
+		parseMark.setLength(length);;
+		parseMark.setLastHeight(lastHeight);
+		parseMark.setLastIndex(lastIndex);
+		parseMark.setLastId(lastId);
+		
+		esClient.index(i->i.index(Indices.ParseMark).id(parseMark.getLastId()).document(parseMark));
+	}
+	
 	private FileInputStream openFile() throws FileNotFoundException {
 		// TODO Auto-generated method stub
 		File file = new File(path,fileName);	
@@ -220,6 +255,7 @@ public class FileParser {
 		// TODO Auto-generated method stub
 		boolean error = false;
 		//Cid rollback
+		
 	
 		error = rollbackCid(esClient,height);
 		
@@ -281,7 +317,7 @@ public class FileParser {
 				.query(q->q
 						.range(r->r
 								.field("height")
-								.gt(JsonData.of(height)))), CidHistory.class);
+								.gte(JsonData.of(height)))), CidHistory.class);
 		
 		Set<String> signerSet = new HashSet<String>();
 		ArrayList<String> idList = new ArrayList<String>();
@@ -392,7 +428,8 @@ public class FileParser {
 				.query(q->q
 						.range(r->r
 								.field("height")
-								.gt(JsonData.of(height)))), RepuHistory.class);
+								.gte(JsonData.of(height))
+								)), RepuHistory.class);
 		
 		Set<String> rateeSet = new HashSet<String>();
 		ArrayList<String> idList = new ArrayList<String>();
@@ -898,7 +935,7 @@ public class FileParser {
 		return lastIndex;
 	}
 
-	public void setLastIndex(long lastIndex) {
+	public void setLastIndex(int lastIndex) {
 		this.lastIndex = lastIndex;
 	}
 
@@ -908,6 +945,14 @@ public class FileParser {
 
 	public void setLastId(String lastId) {
 		this.lastId = lastId;
+	}
+
+	public int getLength() {
+		return length;
+	}
+
+	public void setLength(int length) {
+		this.length = length;
 	}
 
 

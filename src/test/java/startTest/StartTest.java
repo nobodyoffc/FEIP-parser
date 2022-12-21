@@ -13,9 +13,13 @@ import org.slf4j.LoggerFactory;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.ElasticsearchException;
+import co.elastic.clients.elasticsearch._types.SortOrder;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.json.JsonData;
 import esClient.StartClient;
 import parser.FileParser;
 import start.Configer;
+import tools.ParseTools;
 
 
 public class StartTest {
@@ -104,11 +108,17 @@ public class StartTest {
 					}else break;
 				}else break;
 				
-			case 4: 
-				
-				end = restartFromFile(esClient,path,bestHeight);
+			case 4: 	
+				end = restartFromFile(esClient,path);
 				break;
 			case 5: 
+				
+				System.out.println("Input the height that parsing begin with: ");
+				while(!sc.hasNextLong()){
+					System.out.println("\nInput the number of the height:");
+					sc.next();
+				}
+				bestHeight = sc.nextLong();
 				end = manualRetartFromFile(esClient,path,bestHeight);
 				break;
 			case 0: 
@@ -189,24 +199,89 @@ public class StartTest {
 		fileParser.setLastHeight(0);
 		fileParser.setLastIndex(0);
 		
-		boolean error = fileParser.parseFile(esClient);
+		boolean isRollback = false;
+		boolean error = fileParser.parseFile(esClient,isRollback);
 		return error;
 		// TODO Auto-generated method stub
 	}
 
-	private static boolean restartFromFile(ElasticsearchClient esClient, String path, long bestHeight) {
+	private static boolean restartFromFile(ElasticsearchClient esClient, String path) throws Exception {
+		
+		SearchResponse<ParseMark> result = esClient.search(s->s
+				.index(Indices.ParseMark)
+				.size(1)
+				.sort(s1->s1
+						.field(f->f
+								.field("lastIndex")
+								.order(SortOrder.Desc)
+								.field("lastHeight")
+								.order(SortOrder.Desc)
+								)
+						)
+				, ParseMark.class);
+		
+
+		
+		ParseMark parseMark = result.hits().hits().get(0).source();
+		//TODO
+		ParseTools.gsonPrint(parseMark);
+		TimeUnit.SECONDS.sleep(5);
+		
+		FileParser fileParser = new FileParser();
+		
+		fileParser.setPath(path);
+		fileParser.setFileName(parseMark.getFileName());
+		fileParser.setPointer(parseMark.getPointer());
+		fileParser.setLength(parseMark.getLength());
+		fileParser.setLastHeight(parseMark.getLastHeight());
+		fileParser.setLastIndex(parseMark.getLastIndex());
+		fileParser.setLastId(parseMark.getLastId());
+		
+		boolean isRollback = false;
+		boolean error = fileParser.parseFile(esClient,isRollback);
+		
 		System.out.println("restartFromFile.");
-		return true;
+		return error;
 		// TODO Auto-generated method stub
 		
 	}
 
-	private static boolean manualRetartFromFile(ElasticsearchClient esClient, String path, long bestHeight) {
+	private static boolean manualRetartFromFile(ElasticsearchClient esClient, String path, long height) throws Exception {
+		
+		SearchResponse<ParseMark> result = esClient.search(s->s
+				.index(Indices.ParseMark)
+				.query(q->q.range(r->r.field("lastHeight").gte(JsonData.of(height))))
+				.size(1)
+				.sort(s1->s1
+						.field(f->f
+								.field("lastIndex")
+								.order(SortOrder.Desc)
+								.field("lastHeight")
+								.order(SortOrder.Asc)))
+				, ParseMark.class);
+		
+		ParseMark parseMark = result.hits().hits().get(0).source();
+		
+		FileParser fileParser = new FileParser();
+		
+		fileParser.setPath(path);
+		fileParser.setFileName(parseMark.getFileName());
+		fileParser.setPointer(parseMark.getPointer());
+		fileParser.setLength(parseMark.getLength());
+		fileParser.setLastHeight(parseMark.getLastHeight());
+		fileParser.setLastIndex(parseMark.getLastIndex());
+		fileParser.setLastId(parseMark.getLastId());
+		
+		boolean isRollback = true;
+		
+		boolean error = fileParser.parseFile(esClient,isRollback);
+		
 		System.out.println("manualRetartFromFile");
-		return true;
+		return error;
 		// TODO Auto-generated method stub
 		
 	}
+	
 	
 }
 
