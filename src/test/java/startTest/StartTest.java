@@ -17,10 +17,10 @@ import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.json.JsonData;
 import esClient.StartClient;
-import parser.FileParser;
 import start.Configer;
+import start.Indices;
+import start.ParseMark;
 import tools.ParseTools;
-
 
 public class StartTest {
 	
@@ -101,6 +101,7 @@ public class StartTest {
 						TimeUnit.SECONDS.sleep(2);
 						
 						Indices.createAllIndices(esClient);
+						TimeUnit.SECONDS.sleep(2);
 						
 						end = startNewFromFile(esClient,path);
 						
@@ -108,11 +109,18 @@ public class StartTest {
 					}else break;
 				}else break;
 				
-			case 4: 	
+			case 4: 
+				if(esClient==null) {
+					System.out.println("Create a Java client for ES first.");
+					break;
+				}
 				end = restartFromFile(esClient,path);
 				break;
 			case 5: 
-				
+				if(esClient==null) {
+					System.out.println("Create a Java client for ES first.");
+					break;
+				}
 				System.out.println("Input the height that parsing begin with: ");
 				while(!sc.hasNextLong()){
 					System.out.println("\nInput the number of the height:");
@@ -212,10 +220,8 @@ public class StartTest {
 				.size(1)
 				.sort(s1->s1
 						.field(f->f
-								.field("lastIndex")
-								.order(SortOrder.Desc)
-								.field("lastHeight")
-								.order(SortOrder.Desc)
+								.field("lastIndex").order(SortOrder.Desc)
+								.field("lastHeight").order(SortOrder.Desc)
 								)
 						)
 				, ParseMark.class);
@@ -223,9 +229,8 @@ public class StartTest {
 
 		
 		ParseMark parseMark = result.hits().hits().get(0).source();
-		//TODO
+
 		ParseTools.gsonPrint(parseMark);
-		TimeUnit.SECONDS.sleep(5);
 		
 		FileParser fileParser = new FileParser();
 		
@@ -242,7 +247,6 @@ public class StartTest {
 		
 		System.out.println("restartFromFile.");
 		return error;
-		// TODO Auto-generated method stub
 		
 	}
 
@@ -254,11 +258,14 @@ public class StartTest {
 				.size(1)
 				.sort(s1->s1
 						.field(f->f
-								.field("lastIndex")
-								.order(SortOrder.Desc)
-								.field("lastHeight")
-								.order(SortOrder.Asc)))
+								.field("lastIndex").order(SortOrder.Desc)
+								.field("lastHeight").order(SortOrder.Asc)))
 				, ParseMark.class);
+		
+		if(result.hits().total().value()==0) {
+			boolean error = restartFromFile(esClient,path);
+			return error;
+		}
 		
 		ParseMark parseMark = result.hits().hits().get(0).source();
 		

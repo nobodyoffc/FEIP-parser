@@ -14,9 +14,11 @@ import co.elastic.clients.elasticsearch._types.ElasticsearchException;
 import co.elastic.clients.elasticsearch.core.BulkRequest;
 import co.elastic.clients.elasticsearch.core.BulkRequest.Builder;
 import co.elastic.clients.elasticsearch.core.BulkResponse;
+import co.elastic.clients.elasticsearch.core.GetResponse;
 import co.elastic.clients.elasticsearch.core.MgetRequest;
 import co.elastic.clients.elasticsearch.core.MgetResponse;
 import co.elastic.clients.elasticsearch.core.mget.MultiGetResponseItem;
+
 
 public class EsTools {
 	
@@ -25,6 +27,16 @@ public class EsTools {
 	
 	final static Logger log = LoggerFactory.getLogger(EsTools.class);
 	
+	public static <T> T getById(ElasticsearchClient esClient,
+			String index, 
+			String id,
+			Class<T> clazz) throws ElasticsearchException, IOException {
+		
+		GetResponse<T> result = esClient.get(g->g.index(index).id(id), clazz);
+		if(result.found()==false) return null;
+		
+		return result.source();
+	}
 	public static <T> MgetResult<T> getMultiByIdList(
 			ElasticsearchClient esClient,
 			String index, 
