@@ -10,6 +10,7 @@ public class RepuHistory {
 	private String rater;
 	private long reputation;
 	private long hot;
+	private String cause;
 	
 	public String getId() {
 		return id;
@@ -58,6 +59,12 @@ public class RepuHistory {
 	}
 	public void setHot(long hot) {
 		this.hot = hot;
+	}
+	public String getCause() {
+		return cause;
+	}
+	public void setCause(String cause) {
+		this.cause = cause;
 	}
 
 }

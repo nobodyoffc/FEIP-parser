@@ -98,7 +98,7 @@ public class StartTest {
 					if (delete.equals("y")) {	
 		
 						Indices.deleteAllIndices(esClient);
-						TimeUnit.SECONDS.sleep(2);
+						TimeUnit.SECONDS.sleep(3);
 						
 						Indices.createAllIndices(esClient);
 						TimeUnit.SECONDS.sleep(2);
@@ -247,19 +247,18 @@ public class StartTest {
 		
 		System.out.println("restartFromFile.");
 		return error;
-		
 	}
 
 	private static boolean manualRetartFromFile(ElasticsearchClient esClient, String path, long height) throws Exception {
 		
 		SearchResponse<ParseMark> result = esClient.search(s->s
 				.index(Indices.ParseMark)
-				.query(q->q.range(r->r.field("lastHeight").gte(JsonData.of(height))))
+				.query(q->q.range(r->r.field("lastHeight").lte(JsonData.of(height))))
 				.size(1)
 				.sort(s1->s1
 						.field(f->f
 								.field("lastIndex").order(SortOrder.Desc)
-								.field("lastHeight").order(SortOrder.Asc)))
+								.field("lastHeight").order(SortOrder.Desc)))
 				, ParseMark.class);
 		
 		if(result.hits().total().value()==0) {

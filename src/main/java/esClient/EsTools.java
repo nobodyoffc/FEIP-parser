@@ -11,13 +11,17 @@ import org.slf4j.LoggerFactory;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.ElasticsearchException;
+import co.elastic.clients.elasticsearch._types.FieldValue;
+import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch.core.BulkRequest;
 import co.elastic.clients.elasticsearch.core.BulkRequest.Builder;
 import co.elastic.clients.elasticsearch.core.BulkResponse;
 import co.elastic.clients.elasticsearch.core.GetResponse;
 import co.elastic.clients.elasticsearch.core.MgetRequest;
 import co.elastic.clients.elasticsearch.core.MgetResponse;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.mget.MultiGetResponseItem;
+import co.elastic.clients.elasticsearch.core.search.Hit;
 
 
 public class EsTools {
@@ -182,5 +186,62 @@ public class EsTools {
 		br.timeout(t->t.time("600s"));			
 		BulkResponse response = esClient.bulk(br.build());
 		return response;
+	}
+	
+	public static <T> List<T> getHistsForReparse(ElasticsearchClient esClient, String index, String termsField, ArrayList<String> itemIdList, Class<T> clazz) throws ElasticsearchException, IOException {
+		// TODO Auto-generated method stub
+		List<FieldValue> itemValueList = new ArrayList<FieldValue>();
+		for(String v :itemIdList) {
+			itemValueList.add(FieldValue.of(v));
+		}
+		
+		List<String> lastSort = new ArrayList<String> ();
+		
+		SearchResponse<T> result = esClient.search(s->s.index(index)
+				.query(q->q.terms(t->t.field(termsField).terms(t1->t1.value(itemValueList))))
+				.size(EsTools.READ_MAX)
+				.sort(s1->s1
+						.field(f->f
+								.field("index").order(SortOrder.Asc)
+								.field("height").order(SortOrder.Asc)
+								)), clazz);
+		
+		if(result.hits().total().value()==0)return null;
+		
+		lastSort = result.hits().hits().get(result.hits().hits().size()-1).sort();
+		
+		List<T> historyList = new ArrayList<T>();
+		
+		for(Hit<T> hit : result.hits().hits()) {
+			historyList.add(hit.source());
+		}
+		while(true) {
+
+			if(result.hits().total().value()==EsTools.READ_MAX) {
+				
+				List<String> lastSort1 = lastSort;
+
+				result = esClient.search(s->s.index(index)
+						.query(q->q.terms(t->t.field(termsField).terms(t1->t1.value(itemValueList))))
+						.size(EsTools.READ_MAX)
+						.sort(s1->s1
+								.field(f->f
+										.field("index").order(SortOrder.Asc)
+										.field("height").order(SortOrder.Asc)
+										))
+						.searchAfter(lastSort1), clazz);
+				
+				if(result.hits().total().value()==0)break;
+				
+				lastSort = result.hits().hits().get(result.hits().hits().size()-1).sort();
+				
+				for(Hit<T> hit : result.hits().hits()) {
+					historyList.add(hit.source());
+				}
+			}else break;
+		}	
+
+		
+		return historyList;
 	}
 }
