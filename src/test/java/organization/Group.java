@@ -14,7 +14,7 @@ public class Group {
 	private String lastTxid;
 	private long lastTime;
 	private long lastHeight;
-	private long requiredCdd;
+	private long cddToUpdate;
 	private long tCdd;
 	
 	public String getGid() {
@@ -65,11 +65,11 @@ public class Group {
 	public void setLastHeight(long lastHeight) {
 		this.lastHeight = lastHeight;
 	}
-	public long getRequiredCdd() {
-		return requiredCdd;
+	public long getCddToUpdate() {
+		return cddToUpdate;
 	}
-	public void setRequiredCdd(long requiredCdd) {
-		this.requiredCdd = requiredCdd;
+	public void setCddToUpdate(long requiredCdd) {
+		this.cddToUpdate = requiredCdd;
 	}
 	public long gettCdd() {
 		return tCdd;

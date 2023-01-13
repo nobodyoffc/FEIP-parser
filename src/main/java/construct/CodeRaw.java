@@ -13,6 +13,7 @@ public class CodeRaw {
 	private String[] protocols;
 	private String pubKeyAdmin;
 	private int rate;
+	private String closeStatement;
 	
 	public String getCoid() {
 		return coid;
@@ -79,6 +80,12 @@ public class CodeRaw {
 	}
 	public void setRate(int rate) {
 		this.rate = rate;
+	}
+	public String getCloseStatement() {
+		return closeStatement;
+	}
+	public void setCloseStatement(String closeStatement) {
+		this.closeStatement = closeStatement;
 	}
 
 }

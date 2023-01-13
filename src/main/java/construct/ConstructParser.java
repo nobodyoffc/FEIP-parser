@@ -7,9 +7,11 @@ import com.google.gson.Gson;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.ElasticsearchException;
 import esClient.EsTools;
+import identity.Cid;
 import opReturn.OpReturn;
 import opReturn.Feip;
 import start.Indices;
+import start.Start;
 import tools.ParseTools;
 
 public class ConstructParser {
@@ -36,6 +38,7 @@ public class ConstructParser {
 
 		case "publish":
 			if(freeProtocolRaw.getSn()==null||freeProtocolRaw.getName()==null)	return null;
+			if(opre.getHeight()>Start.CddCheckHeight && opre.getCdd()<Start.CddRequired*100)return null;
 			freeProtocolHist.setId(opre.getId());
 			
 			freeProtocolHist.setPid(opre.getId());
@@ -57,6 +60,7 @@ public class ConstructParser {
 			if(freeProtocolRaw.getFileUrls()!=null)freeProtocolHist.setFileUrls(freeProtocolRaw.getFileUrls());
 			
 			break;	
+			
 		case "update":
 			
 			if(freeProtocolRaw.getPid()==null||freeProtocolRaw.getSn()==null||freeProtocolRaw.getName()==null)	return null;
@@ -102,9 +106,21 @@ public class ConstructParser {
 			break;
 		case "rate":
 			if(freeProtocolRaw.getPid()==null)return null;
+			if(opre.getCdd()<Start.CddRequired)return null;
 			freeProtocolHist.setPid(freeProtocolRaw.getPid());
 			freeProtocolHist.setRate(freeProtocolRaw.getRate());
 			freeProtocolHist.setCdd(opre.getCdd());
+			
+			freeProtocolHist.setId(opre.getId());
+			freeProtocolHist.setHeight(opre.getHeight());
+			freeProtocolHist.setIndex(opre.getTxIndex());
+			freeProtocolHist.setTime(opre.getTime());
+			freeProtocolHist.setSigner(opre.getSigner());
+			break;
+		case "close":
+			if(freeProtocolRaw.getPid()==null)return null;
+			freeProtocolHist.setPid(freeProtocolRaw.getPid());
+			if(freeProtocolHist.getCloseStatement()!=null)freeProtocolHist.setCloseStatement(null);
 			
 			freeProtocolHist.setId(opre.getId());
 			freeProtocolHist.setHeight(opre.getHeight());
@@ -140,6 +156,7 @@ public class ConstructParser {
 		case "publish":
 			if(serviceRaw.getStdName()==null)	return null;
 			if(serviceRaw.getSid()!=null) return null;
+			if(opre.getHeight()>Start.CddCheckHeight && opre.getCdd()<Start.CddRequired*100)return null;
 			serviceHist.setId(opre.getId());
 			serviceHist.setSid(opre.getId());
 			serviceHist.setHeight(opre.getHeight());
@@ -161,6 +178,7 @@ public class ConstructParser {
 		case "update":
 			if(serviceRaw.getSid()==null)	return null;
 			if(serviceRaw.getStdName()==null)	return null;
+			
 			serviceHist.setId(opre.getId());
 			serviceHist.setSid(serviceRaw.getSid());
 			serviceHist.setHeight(opre.getHeight());
@@ -181,6 +199,7 @@ public class ConstructParser {
 			break;	
 		case "stop":
 			if(serviceRaw.getSid()==null)return null;
+			
 			serviceHist.setSid(serviceRaw.getSid());
 			serviceHist.setId(opre.getId());
 			serviceHist.setHeight(opre.getHeight());
@@ -190,16 +209,29 @@ public class ConstructParser {
 			break;
 		case "recover":
 			if(serviceRaw.getSid()==null)return null;
+			
 			serviceHist.setSid(serviceRaw.getSid());
 			serviceHist.setId(opre.getId());
 			serviceHist.setHeight(opre.getHeight());
 			serviceHist.setIndex(opre.getTxIndex());
 			serviceHist.setTime(opre.getTime());
 			serviceHist.setSigner(opre.getSigner());
+			break;
+		case "close":
+			if(serviceRaw.getSid()==null)return null;
 			serviceHist.setSid(serviceRaw.getSid());
+			if(serviceHist.getCloseStatement()!=null)serviceHist.setCloseStatement(null);
+			
+			serviceHist.setId(opre.getId());
+			serviceHist.setHeight(opre.getHeight());
+			serviceHist.setIndex(opre.getTxIndex());
+			serviceHist.setTime(opre.getTime());
+			serviceHist.setSigner(opre.getSigner());
 			break;
 		case "rate":
 			if(serviceRaw.getSid()==null)return null;
+			if(serviceRaw.getRate()<0 ||serviceRaw.getRate()>5)return null;
+			if(opre.getCdd()<Start.CddRequired)return null;
 			serviceHist.setSid(serviceRaw.getSid());
 			serviceHist.setId(opre.getId());
 			serviceHist.setHeight(opre.getHeight());
@@ -238,6 +270,7 @@ public class ConstructParser {
 		case "publish":
 			if(appRaw.getStdName()==null)	return null;
 			if(appRaw.getAid()!=null) return null;
+			if(opre.getHeight()>Start.CddCheckHeight && opre.getCdd()<Start.CddRequired*100)return null;
 			appHist.setId(opre.getId());
 			appHist.setAid(opre.getId());
 			appHist.setHeight(opre.getHeight());
@@ -259,6 +292,7 @@ public class ConstructParser {
 		case "update":
 			if(appRaw.getAid()==null)	return null;
 			if(appRaw.getStdName()==null)	return null;
+			
 			appHist.setAid(appRaw.getAid());
 			appHist.setId(opre.getId());
 			appHist.setHeight(opre.getHeight());
@@ -279,6 +313,7 @@ public class ConstructParser {
 			
 		case "stop":
 			if(appRaw.getAid()==null)return null;
+			
 			appHist.setAid(appRaw.getAid());
 			
 			appHist.setId(opre.getId());
@@ -289,7 +324,19 @@ public class ConstructParser {
 			break;
 		case "recover":
 			if(appRaw.getAid()==null)return null;
+			
 			appHist.setAid(appRaw.getAid());
+			
+			appHist.setId(opre.getId());
+			appHist.setHeight(opre.getHeight());
+			appHist.setIndex(opre.getTxIndex());
+			appHist.setTime(opre.getTime());
+			appHist.setSigner(opre.getSigner());
+			break;
+		case "close":
+			if(appRaw.getAid()==null)return null;
+			appHist.setAid(appRaw.getAid());
+			if(appHist.getCloseStatement()!=null)appHist.setCloseStatement(null);
 			
 			appHist.setId(opre.getId());
 			appHist.setHeight(opre.getHeight());
@@ -299,6 +346,8 @@ public class ConstructParser {
 			break;
 		case "rate":
 			if(appRaw.getAid()==null)return null;
+			if(appRaw.getRate()<0 ||appRaw.getRate()>5)return null;
+			if(opre.getCdd()<Start.CddRequired)return null;
 			appHist.setAid(appRaw.getAid());
 			appHist.setRate(appRaw.getRate());
 			appHist.setCdd(opre.getCdd());
@@ -337,6 +386,7 @@ public class ConstructParser {
 		case "publish":
 			if(codeRaw.getName()==null)	return null;
 			if(codeRaw.getCoid()!=null) return null;
+			if(opre.getHeight()>Start.CddCheckHeight && opre.getCdd()<Start.CddRequired*100)return null;
 			codeHist.setId(opre.getId());
 			codeHist.setCoid(opre.getId());
 			codeHist.setHeight(opre.getHeight());
@@ -357,6 +407,7 @@ public class ConstructParser {
 		case "update":
 			if(codeRaw.getCoid()==null)	return null;
 			if(codeRaw.getName()==null)	return null;
+			
 			codeHist.setId(opre.getId());
 			codeHist.setCoid(codeRaw.getCoid());
 			codeHist.setHeight(opre.getHeight());
@@ -375,6 +426,7 @@ public class ConstructParser {
 			break;	
 		case "stop":
 			if(codeRaw.getCoid()==null)	return null;
+			
 			codeHist.setCoid(codeRaw.getCoid());
 			codeHist.setId(opre.getId());
 			codeHist.setHeight(opre.getHeight());
@@ -384,6 +436,7 @@ public class ConstructParser {
 			break;
 		case "recover":
 			if(codeRaw.getCoid()==null)	return null;
+			
 			codeHist.setCoid(codeRaw.getCoid());
 			codeHist.setId(opre.getId());
 			codeHist.setHeight(opre.getHeight());
@@ -392,8 +445,20 @@ public class ConstructParser {
 			codeHist.setSigner(opre.getSigner());
 
 			break;
+		case "close":
+			if(codeRaw.getCoid()==null)return null;
+			codeHist.setCoid(codeRaw.getCoid());
+			if(codeHist.getCloseStatement()!=null)codeHist.setCloseStatement(null);
+			codeHist.setId(opre.getId());
+			codeHist.setHeight(opre.getHeight());
+			codeHist.setIndex(opre.getTxIndex());
+			codeHist.setTime(opre.getTime());
+			codeHist.setSigner(opre.getSigner());
+			break;
 		case "rate":
 			if(codeRaw.getCoid()==null)	return null;
+			if(codeRaw.getRate()<0 ||codeRaw.getRate()>5)return null;
+			if(opre.getCdd()<Start.CddRequired)return null;
 			codeHist.setCoid(codeRaw.getCoid());
 			codeHist.setId(opre.getId());
 			codeHist.setHeight(opre.getHeight());
@@ -462,6 +527,11 @@ public class ConstructParser {
 				break;
 			}
 			
+			if(freeProtocol.isClosed()) {
+				isValid = false;
+				break;
+			}
+			
 			if(! freeProtocol.getOwner().equals(freeProtocolHist.getSigner())) {
 				isValid = false;
 				break;
@@ -488,6 +558,11 @@ public class ConstructParser {
 				break;
 			}
 			
+			if(freeProtocol.isClosed()) {
+				isValid = false;
+				break;
+			}
+			
 			if(! freeProtocol.getOwner().equals(freeProtocolHist.getSigner())) {
 				isValid = false;
 				break;
@@ -507,6 +582,11 @@ public class ConstructParser {
 			freeProtocol = EsTools.getById(esClient, Indices.FreeProtocolIndex, freeProtocolHist.getPid(), FreeProtocol.class);
 			
 			if(freeProtocol==null) {
+				isValid = false;
+				break;
+			}
+			
+			if(freeProtocol.isClosed()) {
 				isValid = false;
 				break;
 			}
@@ -544,7 +624,41 @@ public class ConstructParser {
 			esClient.index(i->i.index(Indices.FreeProtocolIndex).id(freeProtocolHist.getPid()).document(freeProtocol2));
 			isValid = true;
 			break;
+		
+		case "close":	
+			freeProtocol = EsTools.getById(esClient, Indices.FreeProtocolIndex, freeProtocolHist.getPid(), FreeProtocol.class);
 			
+			if(freeProtocol==null) {
+				isValid = false;
+				break;
+			}
+			
+			if(freeProtocol.isClosed()) {
+				isValid = false;
+				break;
+			}
+			
+			if(! freeProtocol.getOwner().equals(freeProtocolHist.getSigner())) {
+				Cid resultCid = EsTools.getById(esClient, Indices.CidIndex, freeProtocolHist.getSigner(), Cid.class);
+				if(resultCid.getMaster()!=null) {
+					if(! resultCid.getMaster().equals(freeProtocolHist.getSigner())) {
+					isValid = false;
+					break;
+					}
+				}
+			}
+
+			
+			FreeProtocol freeProtocol1 = freeProtocol;
+			freeProtocol1.setClosed(true);
+			freeProtocol1.setLastTxid(freeProtocolHist.getId());
+			freeProtocol1.setLastTime(freeProtocolHist.getTime());
+			freeProtocol1.setLastHeight(freeProtocolHist.getHeight());
+			esClient.index(i->i.index(Indices.FreeProtocolIndex).id(freeProtocolHist.getPid()).document(freeProtocol1));
+			isValid = true;
+
+			
+			break;
 		case "rate":
 			freeProtocol = EsTools.getById(esClient, Indices.FreeProtocolIndex, freeProtocolHist.getPid(), FreeProtocol.class);
 			if(freeProtocol==null) {
@@ -577,7 +691,6 @@ public class ConstructParser {
 		
 		return isValid;
 	}
-
 	public boolean parseService(ElasticsearchClient esClient, ServiceHistory serviceHist) throws ElasticsearchException, IOException, InterruptedException {
 		// TODO Auto-generated method stub
 		boolean isValid = false;
@@ -622,6 +735,11 @@ public class ConstructParser {
 				break;
 			}
 			
+			if(service.isClosed()) {
+				isValid = false;
+				break;
+			}
+			
 			if(! service.getOwner().equals(serviceHist.getSigner())) {
 				isValid = false;
 				break;
@@ -643,6 +761,11 @@ public class ConstructParser {
 			service = EsTools.getById(esClient, Indices.ServiceIndex, serviceHist.getSid(), Service.class);
 			
 			if(service==null) {
+				isValid = false;
+				break;
+			}
+			
+			if(service.isClosed()) {
 				isValid = false;
 				break;
 			}
@@ -673,6 +796,11 @@ public class ConstructParser {
 				break;
 			}
 			
+			if(service.isClosed()) {
+				isValid = false;
+				break;
+			}
+			
 			if(! service.getOwner().equals(serviceHist.getSigner())) {
 				isValid = false;
 				break;
@@ -697,11 +825,50 @@ public class ConstructParser {
 			isValid = true;
 
 			break;
+			
+		case "close":	
+			service = EsTools.getById(esClient, Indices.ServiceIndex, serviceHist.getSid(), Service.class);
+			
+			if(service==null) {
+				isValid = false;
+				break;
+			}
+			
+			if(service.isClosed()) {
+				isValid = false;
+				break;
+			}
+			
+			if(! service.getOwner().equals(serviceHist.getSigner())) {
+				Cid resultCid = EsTools.getById(esClient, Indices.CidIndex, serviceHist.getSigner(), Cid.class);
+				if(resultCid.getMaster()!=null) {
+					if(! resultCid.getMaster().equals(serviceHist.getSigner())) {
+					isValid = false;
+					break;
+					}
+				}
+			}
+
+			
+			Service service1 = service;
+			service1.setClosed(true);
+			service1.setLastTxid(serviceHist.getId());
+			service1.setLastTime(serviceHist.getTime());
+			service1.setLastHeight(serviceHist.getHeight());
+			esClient.index(i->i.index(Indices.ServiceIndex).id(serviceHist.getSid()).document(service1));
+			isValid = true;
+
+			break;
 		case "rate":
 			ParseTools.gsonPrint(serviceHist);
 			service = EsTools.getById(esClient, Indices.ServiceIndex, serviceHist.getSid(), Service.class);
 			
 			if(service==null) {
+				isValid = false;
+				break;
+			}
+			
+			if(service.isClosed()) {
 				isValid = false;
 				break;
 			}
@@ -732,7 +899,6 @@ public class ConstructParser {
 		}
 		return isValid;
 	}
-
 	public boolean parseApp(ElasticsearchClient esClient, construct.AppHistory appHist) throws ElasticsearchException, IOException {
 		// TODO Auto-generated method stub
 		boolean isValid = false;
@@ -778,6 +944,11 @@ public class ConstructParser {
 				break;
 			}
 			
+			if(app.isClosed()) {
+				isValid = false;
+				break;
+			}
+			
 			if(! app.getOwner().equals(appHist.getSigner())) {
 				isValid = false;
 				break;
@@ -804,6 +975,11 @@ public class ConstructParser {
 				break;
 			}
 			
+			if(app.isClosed()) {
+				isValid = false;
+				break;
+			}
+			
 			if(! app.getOwner().equals(appHist.getSigner())) {
 				isValid = false;
 				break;
@@ -825,6 +1001,11 @@ public class ConstructParser {
 			app = EsTools.getById(esClient, Indices.AppIndex, appHist.getAid(), App.class);
 			
 			if(app==null) {
+				isValid = false;
+				break;
+			}
+			
+			if(app.isClosed()) {
 				isValid = false;
 				break;
 			}
@@ -856,6 +1037,41 @@ public class ConstructParser {
 			
 			esClient.index(i->i.index(Indices.AppIndex).id(appHist.getAid()).document(app2));
 			isValid = true;
+			break;
+			
+		case "close":	
+			app = EsTools.getById(esClient, Indices.AppIndex, appHist.getAid(), App.class);
+			
+			if(app==null) {
+				isValid = false;
+				break;
+			}
+			
+			if(app.isClosed()) {
+				isValid = false;
+				break;
+			}
+			
+			if(! app.getOwner().equals(appHist.getSigner())) {
+				Cid resultCid = EsTools.getById(esClient, Indices.CidIndex, appHist.getSigner(), Cid.class);
+				if(resultCid.getMaster()!=null) {
+					if(! resultCid.getMaster().equals(appHist.getSigner())) {
+					isValid = false;
+					break;
+					}
+				}
+			}
+
+			
+			App app1 = app;
+			app1.setClosed(true);
+			app1.setLastTxid(appHist.getId());
+			app1.setLastTime(appHist.getTime());
+			app1.setLastHeight(appHist.getHeight());
+			esClient.index(i->i.index(Indices.AppIndex).id(appHist.getAid()).document(app1));
+			isValid = true;
+
+			
 			break;
 			
 		case "rate":
@@ -938,6 +1154,11 @@ public class ConstructParser {
 				break;
 			}
 			
+			if(code.isClosed()) {
+				isValid = false;
+				break;
+			}
+			
 			if(! code.getOwner().equals(codeHist.getSigner())) {
 				isValid = false;
 				break;
@@ -964,6 +1185,11 @@ public class ConstructParser {
 				break;
 			}
 			
+			if(code.isClosed()) {
+				isValid = false;
+				break;
+			}
+			
 			if(! code.getOwner().equals(codeHist.getSigner())) {
 				isValid = false;
 				break;
@@ -985,6 +1211,11 @@ public class ConstructParser {
 			code = EsTools.getById(esClient, Indices.CodeIndex, codeHist.getCoid(), Code.class);
 			
 			if(code==null) {
+				isValid = false;
+				break;
+			}
+			
+			if(code.isClosed()) {
 				isValid = false;
 				break;
 			}
@@ -1018,7 +1249,38 @@ public class ConstructParser {
 			esClient.index(i->i.index(Indices.CodeIndex).id(codeHist.getCoid()).document(app2));
 			isValid = true;
 			break;
+		case "close":	
+			code = EsTools.getById(esClient, Indices.CodeIndex, codeHist.getCoid(), Code.class);
 			
+			if(code==null) {
+				isValid = false;
+				break;
+			}
+			
+			if(code.isClosed()) {
+				isValid = false;
+				break;
+			}
+			
+			if(! code.getOwner().equals(codeHist.getSigner())) {
+				Cid resultCid = EsTools.getById(esClient, Indices.CidIndex, codeHist.getSigner(), Cid.class);
+				if(resultCid.getMaster()!=null) {
+					if(! resultCid.getMaster().equals(codeHist.getSigner())) {
+					isValid = false;
+					break;
+					}
+				}
+			}
+			
+			Code code1 = code;
+			code1.setClosed(true);
+			code1.setLastTxid(codeHist.getId());
+			code1.setLastTime(codeHist.getTime());
+			code1.setLastHeight(codeHist.getHeight());
+			esClient.index(i->i.index(Indices.CodeIndex).id(codeHist.getCoid()).document(code1));
+			isValid = true;
+			
+			break;
 		case "rate":
 			code = EsTools.getById(esClient, Indices.CodeIndex, codeHist.getCoid(), Code.class);
 			

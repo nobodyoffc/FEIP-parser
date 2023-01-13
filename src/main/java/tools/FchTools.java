@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.bitcoinj.core.ECKey;
+
 import io.github.novacrypto.base58.Base58;
 
 
@@ -42,11 +44,8 @@ public class FchTools {
 		
 		byte[] hash4 = new byte[4];
 		System.arraycopy(hash, 0, hash4, 0, 4);
-		
-		byte[] prefix = new byte[1];
-		prefix[0]=addrNaked[0];
 
-		if(addrNaked[0]==0x23 && Arrays.equals(suffix, hash4)) {
+		if(addrNaked[0]==(byte)0x23 && Arrays.equals(suffix, hash4)) {
 			return true;
 		}
 		return false;
@@ -361,15 +360,213 @@ public class FchTools {
 		return address;
 	}
 	public static String pubKeyToEthAddr(String a) {
-
-		String str = Hash.sha3(a);
-		String address = "0x"+str.substring(26);
+		
+		String pubKey65 = recoverPK33ToPK65(a);
+		
+		String pubKey63 = pubKey65.substring(2);
+		
+		byte[] pubKey63Bytes = BytesTools.hexToByteArray(pubKey63);
+		byte[] pukHash63Hash = Hash.sha3(pubKey63Bytes);
+		String fullHash = BytesTools.bytesToHexStringBE(pukHash63Hash);
+		String address = "0x"+fullHash.substring(24);
+		
 		return address;
 	}
 	public static String pubKeyToEthAddr(byte[] b) {
-		byte[] b1 = Hash.sha3(b);
-		String address = "0x"+BytesTools.bytesToHexStringLE(b1).substring(26);
+		String a = BytesTools.bytesToHexStringBE(b);
+		
+		String pubKey65 = recoverPK33ToPK65(a);
+		
+		String pubKey63 = pubKey65.substring(2);
+		
+		byte[] pubKey63Bytes = BytesTools.hexToByteArray(pubKey63);
+		byte[] pukHash63Hash = Hash.sha3(pubKey63Bytes);
+		String fullHash = BytesTools.bytesToHexStringBE(pukHash63Hash);
+		String address = "0x"+fullHash.substring(24);
+		
 		return address;
+	}
+
+	public static String priKeyToPubKey(String priKey) {
+		// TODO Auto-generated method stub
+		//私钥如果长度为38字节，则为压缩格式。构成为：前缀80+32位私钥+压缩标志01+4位校验位。
+		byte[] priKey32Bytes = new byte[32];
+		byte[] priKeyBytes;
+		byte[] suffix;
+		byte[] priKeyForHash;
+		byte[] hash;
+		byte[] hash4;
+		
+		int len = priKey.length();
+		
+		switch(len) {
+		case 64:
+			priKey32Bytes=BytesTools.hexToByteArray(priKey);
+			break;
+		case 52:
+			if(! (priKey.substring(0, 1).equals("L")||priKey.substring(0, 1).equals("L"))) {
+				System.out.println("It's not a private key.");
+				return null;
+			}
+			priKeyBytes = Base58.base58Decode(priKey);
+	
+			suffix = new byte[4];
+			priKeyForHash = new byte[34];
+			
+			System.arraycopy(priKeyBytes,0,priKeyForHash,0,34);
+			System.arraycopy(priKeyBytes,34,suffix,0,4);
+			
+			hash = tools.Hash.Sha256x2(priKeyForHash);
+			
+			hash4 = new byte[4];
+			System.arraycopy(hash, 0, hash4, 0, 4);
+			
+			if(!Arrays.equals(suffix, hash4)) {
+				return null;
+			}
+			if(priKeyForHash[0]!=(byte)0x80) {
+				return null;
+			}		
+			priKey32Bytes = new byte[32];
+			System.arraycopy(priKeyForHash, 1, priKey32Bytes, 0, 32);
+			break;
+		case 51:
+			if(! priKey.substring(0, 1).equals("5")) {
+				System.out.println("It's not a private key.");
+				return null;
+			}
+			
+			priKeyBytes = Base58.base58Decode(priKey);
+	
+			suffix = new byte[4];
+			priKeyForHash = new byte[33];
+			
+			System.arraycopy(priKeyBytes,0,priKeyForHash,0,33);
+			System.arraycopy(priKeyBytes,33,suffix,0,4);
+			
+			hash = tools.Hash.Sha256x2(priKeyForHash);
+			
+			hash4 = new byte[4];
+			System.arraycopy(hash, 0, hash4, 0, 4);
+			
+			if(!Arrays.equals(suffix, hash4)) {
+				return null;
+			}
+			if(priKeyForHash[0]!=(byte)0x80) {
+				return null;
+			}		
+			priKey32Bytes = new byte[32];
+			System.arraycopy(priKeyForHash, 1, priKey32Bytes, 0, 32);
+			break;
+		default:
+			System.out.println("It's not a private key.");
+			return null;
+		}
+		
+		ECKey eckey = ECKey.fromPrivate(priKey32Bytes);
+		
+		String pubkey = BytesTools.bytesToHexStringBE(eckey.getPubKey());
+		
+		return pubkey;
+	}
+	
+	public static String getPriKey32(String priKey) {
+		byte[] priKey32Bytes = new byte[32];
+		byte[] priKeyBytes;
+		byte[] suffix;
+		byte[] priKeyForHash;
+		byte[] hash;
+		byte[] hash4;
+		int len = priKey.length();
+		
+		switch(len) {
+		case 64:
+			priKey32Bytes=BytesTools.hexToByteArray(priKey);
+			break;
+		case 52:
+			if(! (priKey.substring(0, 1).equals("L")||priKey.substring(0, 1).equals("L"))) {
+				System.out.println("It's not a private key.");
+				return null;
+			}
+			priKeyBytes = Base58.base58Decode(priKey);
+	
+			suffix = new byte[4];
+			priKeyForHash = new byte[34];
+			
+			System.arraycopy(priKeyBytes,0,priKeyForHash,0,34);
+			System.arraycopy(priKeyBytes,34,suffix,0,4);
+			
+			hash = tools.Hash.Sha256x2(priKeyForHash);
+			
+			hash4 = new byte[4];
+			System.arraycopy(hash, 0, hash4, 0, 4);
+			
+			if(!Arrays.equals(suffix, hash4)) {
+				return null;
+			}
+			if(priKeyForHash[0]!=(byte)0x80) {
+				return null;
+			}		
+			priKey32Bytes = new byte[32];
+			System.arraycopy(priKeyForHash, 1, priKey32Bytes, 0, 32);
+			break;
+		case 51:
+			if(! priKey.substring(0, 1).equals("5")) {
+				System.out.println("It's not a private key.");
+				return null;
+			}
+			
+			priKeyBytes = Base58.base58Decode(priKey);
+	
+			suffix = new byte[4];
+			priKeyForHash = new byte[33];
+			
+			System.arraycopy(priKeyBytes,0,priKeyForHash,0,33);
+			System.arraycopy(priKeyBytes,33,suffix,0,4);
+			
+			hash = tools.Hash.Sha256x2(priKeyForHash);
+			
+			hash4 = new byte[4];
+			System.arraycopy(hash, 0, hash4, 0, 4);
+			
+			if(!Arrays.equals(suffix, hash4)) {
+				return null;
+			}
+			if(priKeyForHash[0]!=(byte)0x80) {
+				return null;
+			}		
+			priKey32Bytes = new byte[32];
+			System.arraycopy(priKeyForHash, 1, priKey32Bytes, 0, 32);
+			break;
+		default:
+			System.out.println("It's not a private key.");
+			return null;
+		}
+		
+		return BytesTools.bytesToHexStringBE(priKey32Bytes);
+	}
+	
+	public static boolean checkSum(String str) {
+		byte[] strBytes;
+		byte[] suffix;
+		byte[] hash;
+		byte[] hash4=new byte[4];
+		
+		strBytes = BytesTools.hexToByteArray(str);
+		int len = str.length();
+		
+		suffix = new byte[4];
+		byte[] strNake = new byte[len-4];
+		
+		System.arraycopy(strBytes,0,strNake,0,len-4);
+		System.arraycopy(strBytes,len-4,suffix,0,4);
+		
+		hash = tools.Hash.Sha256x2(strNake);
+		System.arraycopy(hash, 0, hash4, 0, 4);
+		
+		if(Arrays.equals(suffix, hash4)) {
+			return true;
+		}else return false;
 	}
 
 }

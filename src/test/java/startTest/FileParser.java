@@ -5,7 +5,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -15,31 +17,39 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.ElasticsearchException;
+import co.elastic.clients.elasticsearch._types.FieldValue;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.search.Hit;
 import construct.AppHistory;
 import construct.CodeHistory;
 import construct.ConstructParser;
 import construct.ConstructRollbacker;
 import construct.FreeProtocolHistory;
 import construct.ServiceHistory;
+import esClient.EsTools;
+import esClient.EsTools.MgetResult;
 import identity.IdentityHistory;
 import identity.IdentityParser;
 import identity.IdentityRollbacker;
 import identity.RepuHistory;
+import opReturn.Feip;
 import opReturn.OpReFileTools;
 import opReturn.OpReturn;
-import opReturn.Feip;
 import opReturn.opReReadResult;
 import organization.GroupHistory;
 import organization.OrganizationParser;
 import organization.OrganizationRollbacker;
-import personal.ContactsRaw;
+import organization.TeamHistory;
 import personal.PersonalParser;
 import personal.PersonalRollbacker;
 import start.Indices;
 import start.ParseMark;
+import start.Start;
 import tools.ParseTools;
 
 public class FileParser {
+	
 	private String path = null;
 	private  String fileName = null;
 	private long pointer =0;
@@ -49,7 +59,7 @@ public class FileParser {
 	private String lastId = null;
 	
 	enum FEIP_NAME{
-		CID,MASTER,HOMEPAGE,NOTICE_FEE,REPUTATION,SERVICE,PROTOCOL,APP,CODE,CONTACTS,MAIL,SAFE,STATEMENT,GROUP,TEAM
+		CID,ABANDON,MASTER,HOMEPAGE,NOTICE_FEE,REPUTATION,SERVICE,PROTOCOL,APP,CODE,CONTACTS,MAIL,SAFE,STATEMENT,GROUP,TEAM
 	}
 	
 	private static final Logger log = LoggerFactory.getLogger(FileParser.class);
@@ -132,17 +142,17 @@ public class FileParser {
 			lastIndex = opre.getTxIndex();
 			lastId = opre.getId();
 			
+			if(opre.getHeight()>Start.CddCheckHeight && opre.getCdd()<Start.CddRequired)continue;
+			
 			Feip feip = parseFeip(opre);
 			if(feip==null)continue;
 			if(feip.getType()==null)continue;
 			if(!feip.getType().equals("FEIP"))continue;
 			
-			//Todo
-			ParseTools.gsonPrint(opre);
+			//TODO
 			ParseTools.gsonPrint(feip);
-			///
 			
-			FEIP_NAME feipName = checkFeipName(feip);
+			FEIP_NAME feipName = checkFeipSn(feip);
 			if(feipName == null)continue;
 
 			switch(feipName) {
@@ -153,6 +163,13 @@ public class FileParser {
 				if(cidHist==null)break;
 				isValid = cidParser.parseCidInfo(esClient,cidHist);	
 				if(isValid)esClient.index(i->i.index(Indices.CidHistIndex).id(cidHist.getId()).document(cidHist));
+				break;
+			case ABANDON:
+				System.out.println("abandon.");
+				IdentityHistory cidHist4 = cidParser.makeAbandon(opre,feip);
+				if(cidHist4==null)break;
+				isValid = cidParser.parseCidInfo(esClient,cidHist4);	
+				if(isValid)esClient.index(i->i.index(Indices.CidHistIndex).id(cidHist4.getId()).document(cidHist4));
 				break;
 			case MASTER:
 				System.out.println("master.");
@@ -212,7 +229,7 @@ public class FileParser {
 				break;
 			case CONTACTS:
 				System.out.println("Contacts.");
-				isValid = personalParser.parseContacts(esClient,opre,feip);	
+				isValid = personalParser.parseConcern(esClient,opre,feip);	
 				break;
 			case MAIL:
 				System.out.println("Mail.");
@@ -233,13 +250,13 @@ public class FileParser {
 				isValid = organizationParser.parseGroup(esClient,groupHist);	
 				if(isValid)esClient.index(i->i.index(Indices.GroupHistIndex).id(groupHist.getId()).document(groupHist));
 				break;
-//			case TEAM:
-//				System.out.println("Team.");
-//				TeamHistory teamHist = organizationParser.makeTeam(opre,feip);
-//				if(teamHist==null)break;
-//				isValid = organizationParser.parseTeam(esClient,teamHist);	
-//				if(isValid)esClient.index(i->i.index(Indices.TeamHistIndex).id(teamHist.getId()).document(teamHist));
-//				break;
+			case TEAM:
+				System.out.println("Team.");
+				TeamHistory teamHist = organizationParser.makeTeam(opre,feip);
+				if(teamHist==null)break;
+				isValid = organizationParser.parseTeam(esClient,teamHist);	
+				if(isValid)esClient.index(i->i.index(Indices.TeamHistIndex).id(teamHist.getId()).document(teamHist));
+				break;
 			default:
 				break;
 			}
@@ -290,25 +307,27 @@ public class FileParser {
 		return  prot;
 	}
 
-	private FEIP_NAME checkFeipName(Feip feip) {
+	private FEIP_NAME checkFeipSn(Feip feip) {
 		// TODO Auto-generated method stub
 		String sn = feip.getSn();
-		if(sn.equals("3"))return FEIP_NAME.CID;
-		if(sn.equals("6"))return FEIP_NAME.MASTER;
-		if(sn.equals("26"))return FEIP_NAME.HOMEPAGE;
-		if(sn.equals("27"))return FEIP_NAME.NOTICE_FEE;
-		if(sn.equals("16"))return FEIP_NAME.REPUTATION;
 		if(sn.equals("1"))return FEIP_NAME.PROTOCOL;
-		if(sn.equals("29"))return FEIP_NAME.SERVICE;
-		if(sn.equals("15"))return FEIP_NAME.APP;
 		if(sn.equals("2"))return FEIP_NAME.CODE;
-		if(sn.equals("12"))return FEIP_NAME.CONTACTS;
+		if(sn.equals("3"))return FEIP_NAME.CID;
+		if(sn.equals("4"))return FEIP_NAME.ABANDON;
+		if(sn.equals("5"))return FEIP_NAME.SERVICE;
+		if(sn.equals("6"))return FEIP_NAME.MASTER;
 		if(sn.equals("7"))return FEIP_NAME.MAIL;
-		if(sn.equals("17"))return FEIP_NAME.SAFE;
 		if(sn.equals("8"))return FEIP_NAME.STATEMENT;
+		if(sn.equals("9"))return FEIP_NAME.HOMEPAGE;
+		if(sn.equals("10"))return FEIP_NAME.NOTICE_FEE;
+		if(sn.equals("12"))return FEIP_NAME.CONTACTS;
+	
+		if(sn.equals("15"))return FEIP_NAME.APP;
+		if(sn.equals("16"))return FEIP_NAME.REPUTATION;
+		if(sn.equals("17"))return FEIP_NAME.SAFE;
+		if(sn.equals("18"))return FEIP_NAME.TEAM;
 		if(sn.equals("19"))return FEIP_NAME.GROUP;
-		if(sn.equals("28"))return FEIP_NAME.TEAM;
-		
+
 		return null;
 	}
 
@@ -369,5 +388,105 @@ public class FileParser {
 		this.length = length;
 	}
 
+	public void reparseIdList(ElasticsearchClient esClient, String index, List<String> idList) throws Exception {
+		// TODO Auto-generated method stub
+		if(idList==null || idList.isEmpty())return;
+		switch (index) {
+		case Indices.CidIndex:
+			EsTools.bulkDeleteList(esClient, Indices.CidIndex, (ArrayList<String>) idList);
+			TimeUnit.SECONDS.sleep(2);
+			
+			ArrayList<IdentityHistory> reparseCidList = getReparseHistList(esClient,Indices.CidHistIndex,idList,"signer",IdentityHistory.class);
+			
+			for(IdentityHistory idHist: reparseCidList) {
+				new IdentityParser().parseCidInfo(esClient,idHist);
+			}
+			new IdentityRollbacker().reviseCidRepuAndHot(esClient, (ArrayList<String>) idList);
+			break;
+		case Indices.FreeProtocolIndex:
+			EsTools.bulkDeleteList(esClient, Indices.FreeProtocolIndex, (ArrayList<String>) idList);
+			TimeUnit.SECONDS.sleep(2);
+			
+			ArrayList<FreeProtocolHistory> reparseFreeProtocolList = getReparseHistList(esClient,Indices.FreeProtocolHistIndex,idList,"pid",FreeProtocolHistory.class);
+			
+			for(FreeProtocolHistory idHist: reparseFreeProtocolList) {
+				new ConstructParser().parseFreeProtocol(esClient, idHist);
+			}
+			break;
+		case Indices.CodeIndex:
+			EsTools.bulkDeleteList(esClient, Indices.CodeIndex, (ArrayList<String>) idList);
+			TimeUnit.SECONDS.sleep(2);
+			
+			ArrayList<CodeHistory> reparseCodeList = getReparseHistList(esClient,Indices.CodeHistIndex,idList,"coid",CodeHistory.class);
+			
+			for(CodeHistory idHist: reparseCodeList) {
+				new ConstructParser().parseCode(esClient, idHist);
+			}
+			break;
+		case Indices.AppIndex:
+			EsTools.bulkDeleteList(esClient, Indices.AppIndex, (ArrayList<String>) idList);
+			TimeUnit.SECONDS.sleep(2);
+			
+			ArrayList<AppHistory> reparseAppList = getReparseHistList(esClient,Indices.AppHistIndex,idList,"aid",AppHistory.class);
+			
+			for(AppHistory idHist: reparseAppList) {
+				new ConstructParser().parseApp(esClient, idHist);
+			}
+			break;
+		case Indices.ServiceIndex:
+			EsTools.bulkDeleteList(esClient, Indices.ServiceIndex, (ArrayList<String>) idList);
+			TimeUnit.SECONDS.sleep(2);
+			ArrayList<ServiceHistory> reparseServiceList = getReparseHistList(esClient,Indices.ServiceHistIndex,idList,"sid",ServiceHistory.class);
+			
+			for(ServiceHistory idHist: reparseServiceList) {
+				new ConstructParser().parseService(esClient, idHist);
+			}
+			break;
+		case Indices.GroupIndex:
+			EsTools.bulkDeleteList(esClient, Indices.GroupIndex, (ArrayList<String>) idList);
+			TimeUnit.SECONDS.sleep(2);
+			ArrayList<GroupHistory> reparseGroupList = getReparseHistList(esClient,Indices.GroupHistIndex,idList,"gid",GroupHistory.class);
+			
+			for(GroupHistory idHist: reparseGroupList) {
+				new OrganizationParser().parseGroup(esClient, idHist);
+			}
+			break;
+		case Indices.TeamIndex:
+			EsTools.bulkDeleteList(esClient, Indices.TeamIndex, (ArrayList<String>) idList);
+			TimeUnit.SECONDS.sleep(2);
+			ArrayList<TeamHistory> reparseTeamList = getReparseHistList(esClient,Indices.TeamHistIndex,idList,"tid",TeamHistory.class);
+			
+			for(TeamHistory idHist: reparseTeamList) {
+				new OrganizationParser().parseTeam(esClient, idHist);
+			}
+			break;
+		default:
+			break;
+		}
+	}
 
+	private <T>ArrayList<T> getReparseHistList(ElasticsearchClient esClient, String histIndex,
+			List<String> idList, String idField, Class<T> clazz) 
+					throws ElasticsearchException, IOException {
+		// TODO Auto-generated method stub
+		List<FieldValue> fieldValueList = new ArrayList<FieldValue>();
+		for(String id:idList) {
+			fieldValueList.add(FieldValue.of(id));
+		}
+		
+		SearchResponse<T> result = esClient.search(s->s
+				.index(histIndex)
+				.query(q->q
+						.terms(t->t
+								.field(idField)
+								.terms(t1->t1.value(fieldValueList))))
+				, clazz);
+		if(result.hits().total().value()==0)return null;
+		List<Hit<T>> hitList = result.hits().hits();
+		ArrayList <T> reparseList = new ArrayList<T>();
+		for(Hit<T> hit:hitList) {
+			reparseList.add(hit.source());
+		}
+		return reparseList;
+	}
 }

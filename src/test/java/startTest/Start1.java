@@ -5,11 +5,15 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.gson.Gson;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.ElasticsearchException;
@@ -22,10 +26,12 @@ import start.Indices;
 import start.ParseMark;
 import tools.ParseTools;
 
-public class StartTest {
+public class Start1 {
+	public static long CddCheckHeight=2000000;
+	public static long CddRequired=1;
 	
-	private static int MenuItemsNum =5;
-	private static final Logger log = LoggerFactory.getLogger(StartTest.class);
+	private static int MenuItemsNum =6;
+	private static final Logger log = LoggerFactory.getLogger(Start1.class);
 	private static StartClient startClient = new StartClient();
 	
 	public static void main(String[] args)throws Exception{
@@ -47,7 +53,7 @@ public class StartTest {
 					+"	3 Start New Parse from file\n"
 					+"	4 Restart from interruption\n"
 					+"	5 Manual start from a height\n"
-					+"	6 Config\n"
+					+"	6 Reparse ID list\n"
 					+"	0 exit"
 					);	
 			
@@ -55,7 +61,6 @@ public class StartTest {
 			
 			String path = configer.getPath();
 			long bestHeight = 0;
-			
 			switch(choice) {
 			case 1:
 				if(configer.getIp()==null || configer.getPort() == 0 || configer.getPath()==null) 
@@ -129,10 +134,25 @@ public class StartTest {
 				bestHeight = sc.nextLong();
 				end = manualRetartFromFile(esClient,path,bestHeight);
 				break;
+			case 6: 
+				System.out.println("Input the name of ES index:");
+				String index = sc.next();
+				System.out.println("Input the ID list in compressed Json string:");
+				String idListJsonStr = br.readLine();
+				
+				//try {
+					Gson gson = new Gson();
+					@SuppressWarnings("unchecked") List<String> idList = gson.fromJson(idListJsonStr, List.class);
+				//}
+				FileParser fileParser = new FileParser();			
+				fileParser.reparseIdList(esClient, index,idList);
+				break;
 			case 0: 
 				if(esClient!=null)startClient.shutdownClient();
 				System.out.println("Exited, see you again.");
 				end = true;
+				break;
+			default:
 				break;
 			}
 		}

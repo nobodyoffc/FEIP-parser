@@ -5,9 +5,10 @@ public class Cid {
 	private String id;
 	private String cid;
 	private String [] usedCids;
+	private String priKey;
 	private String master;
 	private String[] homepages;
-	private double noticFee;
+	private double noticeFee;
 	private long reputation;
 	private long hot;
 	private long nameTime;
@@ -54,12 +55,12 @@ public class Cid {
 		this.homepages = homepage;
 	}
 
-	public double getNoticFee() {
-		return noticFee;
+	public double getNoticeFee() {
+		return noticeFee;
 	}
 
-	public void setNoticFee(double noticFee) {
-		this.noticFee = noticFee;
+	public void setNoticeFee(double noticeFee) {
+		this.noticeFee = noticeFee;
 	}
 
 	public long getReputation() {
@@ -92,6 +93,14 @@ public class Cid {
 
 	public void setLastHeight(long lastHeight) {
 		this.lastHeight = lastHeight;
+	}
+
+	public String getPriKey() {
+		return priKey;
+	}
+
+	public void setPriKey(String priKey) {
+		this.priKey = priKey;
 	}
 	
 

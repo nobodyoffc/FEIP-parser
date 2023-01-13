@@ -13,6 +13,7 @@ public class ServiceRaw {
 	private String[] codes;
 	private Object params;
 	private int rate;
+	private String closeStatement;
 	
 	public String getSid() {
 		return sid;
@@ -85,6 +86,12 @@ public class ServiceRaw {
 	}
 	public void setCodes(String[] codes) {
 		this.codes = codes;
+	}
+	public String getCloseStatement() {
+		return closeStatement;
+	}
+	public void setCloseStatement(String closeStatement) {
+		this.closeStatement = closeStatement;
 	}
 	
 	

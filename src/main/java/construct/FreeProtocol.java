@@ -25,6 +25,8 @@ public class FreeProtocol {
 	private long tCdd;
 	private float tRate;
 	private boolean active;
+	private boolean closed;
+	private String closeStatement;
 	
 	public String getPid() {
 		return pid;
@@ -157,6 +159,18 @@ public class FreeProtocol {
 	}
 	public void setHash(String hash) {
 		this.hash = hash;
+	}
+	public boolean isClosed() {
+		return closed;
+	}
+	public void setClosed(boolean closed) {
+		this.closed = closed;
+	}
+	public String getCloseStatement() {
+		return closeStatement;
+	}
+	public void setCloseStatement(String closeStatement) {
+		this.closeStatement = closeStatement;
 	}
 	
 	

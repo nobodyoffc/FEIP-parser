@@ -21,6 +21,8 @@ import esClient.StartClient;
 import tools.ParseTools;
 
 public class Start {
+	public static long CddCheckHeight=2000000;
+	public static long CddRequired=1;
 	
 	private static int MenuItemsNum =5;
 	private static final Logger log = LoggerFactory.getLogger(Start.class);
@@ -100,7 +102,7 @@ public class Start {
 						
 						Indices.createAllIndices(esClient);
 						
-						end = startNewFromFile(esClient,path);
+						//end = startNewFromFile(esClient,path);
 						
 						break;
 					}else break;
@@ -111,7 +113,7 @@ public class Start {
 					System.out.println("Create a Java client for ES first.");
 					break;
 				}
-				end = restartFromFile(esClient,path);
+				//end = restartFromFile(esClient,path);
 				break;
 			case 5: 
 				if(esClient==null) {
@@ -124,7 +126,7 @@ public class Start {
 					sc.next();
 				}
 				bestHeight = sc.nextLong();
-				end = manualRetartFromFile(esClient,path,bestHeight);
+				//end = manualRetartFromFile(esClient,path,bestHeight);
 				break;
 			case 0: 
 				if(esClient!=null)startClient.shutdownClient();
@@ -187,102 +189,102 @@ public class Start {
 		return esClient;
 	}
 
-	private static boolean startNewFromFile(ElasticsearchClient esClient, String path) throws Exception {
-		
-//		if(esClient==null) {
-//			System.out.println("Create a Java client for ES first.");
-//			return false;
-//		}
-		
-		System.out.println("startNewFromFile.");
-		
-		FileParser fileParser = new FileParser();
-		
-		fileParser.setPath(path);
-		fileParser.setFileName("opreturn0.byte");
-		fileParser.setPointer(0);
-		fileParser.setLastHeight(0);
-		fileParser.setLastIndex(0);
-		
-		boolean isRollback = false;
-		boolean error = fileParser.parseFile(esClient,isRollback);
-		return error;
-		// TODO Auto-generated method stub
-	}
-
-	private static boolean restartFromFile(ElasticsearchClient esClient, String path) throws Exception {
-		
-		SearchResponse<ParseMark> result = esClient.search(s->s
-				.index(Indices.ParseMark)
-				.size(1)
-				.sort(s1->s1
-						.field(f->f
-								.field("lastIndex")
-								.order(SortOrder.Desc)
-								.field("lastHeight")
-								.order(SortOrder.Desc)
-								)
-						)
-				, ParseMark.class);
-		
-
-		
-		ParseMark parseMark = result.hits().hits().get(0).source();
-
-		ParseTools.gsonPrint(parseMark);
-		
-		FileParser fileParser = new FileParser();
-		
-		fileParser.setPath(path);
-		fileParser.setFileName(parseMark.getFileName());
-		fileParser.setPointer(parseMark.getPointer());
-		fileParser.setLength(parseMark.getLength());
-		fileParser.setLastHeight(parseMark.getLastHeight());
-		fileParser.setLastIndex(parseMark.getLastIndex());
-		fileParser.setLastId(parseMark.getLastId());
-		
-		boolean isRollback = false;
-		boolean error = fileParser.parseFile(esClient,isRollback);
-		
-		System.out.println("restartFromFile.");
-		return error;
-		
-	}
-
-	private static boolean manualRetartFromFile(ElasticsearchClient esClient, String path, long height) throws Exception {
-		
-		SearchResponse<ParseMark> result = esClient.search(s->s
-				.index(Indices.ParseMark)
-				.query(q->q.range(r->r.field("lastHeight").gte(JsonData.of(height))))
-				.size(1)
-				.sort(s1->s1
-						.field(f->f
-								.field("lastIndex").order(SortOrder.Desc)
-								.field("lastHeight").order(SortOrder.Asc)))
-				, ParseMark.class);
-		
-		ParseMark parseMark = result.hits().hits().get(0).source();
-		
-		FileParser fileParser = new FileParser();
-		
-		fileParser.setPath(path);
-		fileParser.setFileName(parseMark.getFileName());
-		fileParser.setPointer(parseMark.getPointer());
-		fileParser.setLength(parseMark.getLength());
-		fileParser.setLastHeight(parseMark.getLastHeight());
-		fileParser.setLastIndex(parseMark.getLastIndex());
-		fileParser.setLastId(parseMark.getLastId());
-		
-		boolean isRollback = true;
-		
-		boolean error = fileParser.parseFile(esClient,isRollback);
-		
-		System.out.println("manualRetartFromFile");
-		return error;
-		// TODO Auto-generated method stub
-		
-	}
-	
+//	private static boolean startNewFromFile(ElasticsearchClient esClient, String path) throws Exception {
+//		
+////		if(esClient==null) {
+////			System.out.println("Create a Java client for ES first.");
+////			return false;
+////		}
+//		
+//		System.out.println("startNewFromFile.");
+//		
+//		FileParser fileParser = new FileParser();
+//		
+//		fileParser.setPath(path);
+//		fileParser.setFileName("opreturn0.byte");
+//		fileParser.setPointer(0);
+//		fileParser.setLastHeight(0);
+//		fileParser.setLastIndex(0);
+//		
+//		boolean isRollback = false;
+//		boolean error = fileParser.parseFile(esClient,isRollback);
+//		return error;
+//		// TODO Auto-generated method stub
+//	}
+//
+//	private static boolean restartFromFile(ElasticsearchClient esClient, String path) throws Exception {
+//		
+//		SearchResponse<ParseMark> result = esClient.search(s->s
+//				.index(Indices.ParseMark)
+//				.size(1)
+//				.sort(s1->s1
+//						.field(f->f
+//								.field("lastIndex")
+//								.order(SortOrder.Desc)
+//								.field("lastHeight")
+//								.order(SortOrder.Desc)
+//								)
+//						)
+//				, ParseMark.class);
+//		
+//
+//		
+//		ParseMark parseMark = result.hits().hits().get(0).source();
+//
+//		ParseTools.gsonPrint(parseMark);
+//		
+//		FileParser fileParser = new FileParser();
+//		
+//		fileParser.setPath(path);
+//		fileParser.setFileName(parseMark.getFileName());
+//		fileParser.setPointer(parseMark.getPointer());
+//		fileParser.setLength(parseMark.getLength());
+//		fileParser.setLastHeight(parseMark.getLastHeight());
+//		fileParser.setLastIndex(parseMark.getLastIndex());
+//		fileParser.setLastId(parseMark.getLastId());
+//		
+//		boolean isRollback = false;
+//		boolean error = fileParser.parseFile(esClient,isRollback);
+//		
+//		System.out.println("restartFromFile.");
+//		return error;
+//		
+//	}
+//
+//	private static boolean manualRetartFromFile(ElasticsearchClient esClient, String path, long height) throws Exception {
+//		
+//		SearchResponse<ParseMark> result = esClient.search(s->s
+//				.index(Indices.ParseMark)
+//				.query(q->q.range(r->r.field("lastHeight").gte(JsonData.of(height))))
+//				.size(1)
+//				.sort(s1->s1
+//						.field(f->f
+//								.field("lastIndex").order(SortOrder.Desc)
+//								.field("lastHeight").order(SortOrder.Asc)))
+//				, ParseMark.class);
+//		
+//		ParseMark parseMark = result.hits().hits().get(0).source();
+//		
+//		FileParser fileParser = new FileParser();
+//		
+//		fileParser.setPath(path);
+//		fileParser.setFileName(parseMark.getFileName());
+//		fileParser.setPointer(parseMark.getPointer());
+//		fileParser.setLength(parseMark.getLength());
+//		fileParser.setLastHeight(parseMark.getLastHeight());
+//		fileParser.setLastIndex(parseMark.getLastIndex());
+//		fileParser.setLastId(parseMark.getLastId());
+//		
+//		boolean isRollback = true;
+//		
+//		boolean error = fileParser.parseFile(esClient,isRollback);
+//		
+//		System.out.println("manualRetartFromFile");
+//		return error;
+//		// TODO Auto-generated method stub
+//		
+//	}
+//	
 	
 }
 

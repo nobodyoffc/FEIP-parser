@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.ElasticsearchException;
@@ -40,11 +41,16 @@ public class IdentityRollbacker {
 		ArrayList<String> signerList = resultMap.get("signerList");
 		ArrayList<String> histIdList = resultMap.get("histIdList");
 		
-		if(signerList==null)return error;
+		if(signerList==null || signerList.isEmpty())return error;
+		
+		System.out.println("If Rollbacking is interrupted, reparse all effected ids of index 'cid': ");
+		ParseTools.gsonPrint(signerList);
 		
 		deleteEffectedCids(esClient, signerList);
 		
 		deleteRolledHists(esClient,Indices.CidHistIndex,histIdList);
+		
+		TimeUnit.SECONDS.sleep(3);
 		
 		List<IdentityHistory>reparseList = 	EsTools.getHistsForReparse(esClient,Indices.CidHistIndex,"signer",signerList, IdentityHistory.class);
 ;
@@ -79,9 +85,6 @@ public class IdentityRollbacker {
 		resultMap.put("signerList", signerList);
 		resultMap.put("histIdList", idList);
 		
-		//TODO
-		ParseTools.gsonPrint(resultMap);
-		
 		return resultMap;
 	}
 
@@ -113,11 +116,13 @@ public class IdentityRollbacker {
 		ArrayList<String> rateeList = resultMap.get("rateeList");
 		ArrayList<String> histIdList = resultMap.get("histIdList");
 		
-		if(rateeList==null)return error;
+		if(rateeList==null || rateeList.isEmpty())return error;
 		
 		deleteRolledHists(esClient,Indices.RepuHistIndex, histIdList);
 		
 		reviseCidRepuAndHot(esClient,rateeList);
+		
+		TimeUnit.SECONDS.sleep(3);
 		
 		return error;
 
@@ -148,12 +153,9 @@ public class IdentityRollbacker {
 		resultMap.put("rateeList", rateeList);
 		resultMap.put("histIdList", idList);
 		
-		//TODO
-		ParseTools.gsonPrint(resultMap);
-		
 		return resultMap;
 	}
-	private void reviseCidRepuAndHot(ElasticsearchClient esClient, ArrayList<String> rateeList) throws ElasticsearchException, IOException {
+	public void reviseCidRepuAndHot(ElasticsearchClient esClient, ArrayList<String> rateeList) throws ElasticsearchException, IOException {
 		// TODO Auto-generated method stub
 		int i = 0;
 		while(true) {

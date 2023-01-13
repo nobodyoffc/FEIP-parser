@@ -20,6 +20,8 @@ public class Code {
 	private long tCdd;
 	private float tRate;
 	private boolean active;
+	private boolean closed;
+	private String closeStatement;
 	
 	public String getCoid() {
 		return coid;
@@ -128,6 +130,18 @@ public class Code {
 	}
 	public void setActive(boolean active) {
 		this.active = active;
+	}
+	public boolean isClosed() {
+		return closed;
+	}
+	public void setClosed(boolean closed) {
+		this.closed = closed;
+	}
+	public String getCloseStatement() {
+		return closeStatement;
+	}
+	public void setCloseStatement(String closeStatement) {
+		this.closeStatement = closeStatement;
 	}
 	
 	

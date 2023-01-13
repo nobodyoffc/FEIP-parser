@@ -15,6 +15,7 @@ import co.elastic.clients.elasticsearch.core.SearchResponse;
 import opReturn.OpReturn;
 import opReturn.Feip;
 import start.Indices;
+import start.Start;
 import tools.FchTools;
 import tools.ParseTools;
 
@@ -50,6 +51,32 @@ public class IdentityParser {
 		
 		return cidHist; 
 	}
+	
+	public IdentityHistory makeAbandon(OpReturn opre, Feip feip) {
+		// TODO Auto-generated method stub
+		Gson gson = new Gson();
+		AbandonRaw abandonRaw = gson.fromJson(gson.toJson(feip.getData()),AbandonRaw.class);
+		if(! addrFromPriKey(abandonRaw.getPriKey()).equals(opre.getSigner()))return null;
+		
+		IdentityHistory cidHist = new IdentityHistory();
+		
+		cidHist.setSigner(opre.getSigner());
+		cidHist.setSn(feip.getSn());
+		cidHist.setVer(feip.getVer());
+		cidHist.setHeight(opre.getHeight());
+		cidHist.setId(opre.getId());
+		cidHist.setIndex(opre.getTxIndex());
+		cidHist.setTime(opre.getTime());
+		cidHist.setData_priKey(abandonRaw.getPriKey());
+	
+		return cidHist; 
+	}
+
+	private String addrFromPriKey(String priKey) {
+		// TODO Auto-generated method stub
+		String addr = FchTools.pubKeyToFchAddr(FchTools.priKeyToPubKey(priKey)) ;
+		return addr;
+	}
 
 	public IdentityHistory makeMaster(OpReturn opre, Feip feip) {
 		// TODO Auto-generated method stub
@@ -78,17 +105,7 @@ public class IdentityParser {
 	public IdentityHistory makeHomepage(OpReturn opre, Feip feip) {
 		// TODO Auto-generated method stub
 		Gson gson = new Gson();
-		HomepageRaw homepageRaw = new HomepageRaw();
-
-		try {
-			homepageRaw = gson.fromJson(gson.toJson(feip.getData()),HomepageRaw.class);
-		}catch(com.google.gson.JsonSyntaxException e) {
-			HomepageRaw1 homepageRaw1 = gson.fromJson(gson.toJson(feip.getData()),HomepageRaw1.class);
-			homepageRaw.setOp(homepageRaw1.op);
-			String[] homepages = new String[1];
-			homepages[0]=homepageRaw1.homepage;
-			homepageRaw.setHomepages(homepages);	
-		}
+		HomepageRaw homepageRaw = gson.fromJson(gson.toJson(feip.getData()),HomepageRaw.class);
 		
 		if(homepageRaw ==null)return null;
 		
@@ -113,10 +130,7 @@ public class IdentityParser {
 		
 		return cidHist; 
 	}
-	private class HomepageRaw1{
-		String op;
-		String homepage;
-	}
+
 	public IdentityHistory makeNoticeFee(OpReturn opre, Feip feip) {
 		// TODO Auto-generated method stub
 		Gson gson = new Gson();
@@ -139,6 +153,7 @@ public class IdentityParser {
 	}
 	public RepuHistory makeReputation(OpReturn opre, Feip feip) {
 		// TODO Auto-generated method stub
+		if(opre.getCdd()<Start.CddRequired)return null;
 		Gson gson = new Gson();
 		ReputationRaw reputationRaw = gson.fromJson(gson.toJson(feip.getData()),ReputationRaw.class);
 		if(reputationRaw ==null)return null;
@@ -166,10 +181,28 @@ public class IdentityParser {
 	public boolean parseCidInfo(ElasticsearchClient esClient, IdentityHistory cidHist) throws ElasticsearchException, IOException, InterruptedException {
 		
 		if(cidHist.getSn().equals("3"))return parseCid(esClient, cidHist);
+		if(cidHist.getSn().equals("4"))return parseAbandon(esClient, cidHist);
 		if(cidHist.getSn().equals("6"))return parseMaster(esClient, cidHist);
 		if(cidHist.getSn().equals("26"))return parseHomepage(esClient, cidHist);
 		if(cidHist.getSn().equals("27"))return parseNoticeFee(esClient, cidHist);
 		return false;
+	}
+
+	private boolean parseAbandon(ElasticsearchClient esClient, IdentityHistory cidHist) throws ElasticsearchException, IOException {
+		// TODO Auto-generated method stub
+		boolean isValid = false;
+		GetResponse<Cid> resultGetCid = esClient.get(g->g.index(Indices.CidIndex).id(cidHist.getSigner()), Cid.class);
+		
+		if(resultGetCid.found()) {
+			Cid cid  = resultGetCid.source();	
+			if(cid.getPriKey()==null) {
+				cid.setPriKey(cidHist.getData_priKey());
+				cid.setLastHeight(cidHist.getHeight());
+				esClient.index(i->i.index(Indices.CidIndex).id(cidHist.getSigner()).document(cid));
+				isValid = true;
+			}
+		}
+		return isValid;
 	}
 
 	private boolean parseCid(ElasticsearchClient esClient, IdentityHistory cidHist) throws ElasticsearchException, IOException {
@@ -341,7 +374,7 @@ public class IdentityParser {
 		if(resultGetCid.found()) {
 			Cid cid  = resultGetCid.source();	
 			
-			cid.setNoticFee(cidHist.getData_noticeFee());
+			cid.setNoticeFee(cidHist.getData_noticeFee());
 			cid.setLastHeight(cidHist.getHeight());
 			esClient.index(i->i.index(Indices.CidIndex).id(cidHist.getSigner()).document(cid));
 			isValid = true;
@@ -349,7 +382,7 @@ public class IdentityParser {
 		}else {
 			Cid cid = new Cid();
 			cid.setId(cidHist.getSigner());
-			cid.setNoticFee(cidHist.getData_noticeFee());
+			cid.setNoticeFee(cidHist.getData_noticeFee());
 			cid.setLastHeight(cidHist.getHeight());
 			esClient.index(i->i.index(Indices.CidIndex).id(cidHist.getSigner()).document(cid));
 			isValid = true;

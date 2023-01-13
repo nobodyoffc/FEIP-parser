@@ -23,6 +23,7 @@ public class FreeProtocolHistory {
 	private String op;
 	private int rate;
 	private long cdd;
+	private String closeStatement;
 	
 	
 	public String getId() {
@@ -138,6 +139,12 @@ public class FreeProtocolHistory {
 	}
 	public void setHash(String hash) {
 		this.hash = hash;
+	}
+	public String getCloseStatement() {
+		return closeStatement;
+	}
+	public void setCloseStatement(String closeStatement) {
+		this.closeStatement = closeStatement;
 	}
 
 }

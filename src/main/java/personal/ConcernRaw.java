@@ -1,6 +1,6 @@
 package personal;
 
-public class ContactsRaw {
+public class ConcernRaw {
 
 	private String op;
 	private String addTxid;

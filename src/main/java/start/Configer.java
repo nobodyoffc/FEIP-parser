@@ -50,7 +50,7 @@ public class Configer {
 	public void configHttps(Scanner sc, BufferedReader br) throws IOException {
 		config(sc, br,true) ;
 	}
-	private void config(Scanner sc, BufferedReader br,boolean isHttps) throws IOException {
+	public void config(Scanner sc, BufferedReader br,boolean isHttps) throws IOException {
 		
 		Configer configer = new Configer();
 		
@@ -90,7 +90,7 @@ public class Configer {
 		File file;
 		
 		while(true) {
-			System.out.println("Input the path of freecash block data ending with '/':");
+			System.out.println("Input the path of opreturn*.byte file ending with '/':");
 			configer.setPath(br.readLine());
 	        file = new File(configer.getPath());
 	        if (!file.exists()) {

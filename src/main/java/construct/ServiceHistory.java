@@ -17,6 +17,7 @@ public class ServiceHistory {
 	private String[] protocols;
 	private String[] codes;
 	private Object params;
+	private String closeStatement;
 	
 	private String sid;
 	private String op;
@@ -130,6 +131,12 @@ public class ServiceHistory {
 	}
 	public void setCodes(String[] codes) {
 		this.codes = codes;
+	}
+	public String getCloseStatement() {
+		return closeStatement;
+	}
+	public void setCloseStatement(String closeStatement) {
+		this.closeStatement = closeStatement;
 	}
 	
 }

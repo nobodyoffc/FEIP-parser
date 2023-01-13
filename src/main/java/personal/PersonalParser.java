@@ -13,83 +13,83 @@ import start.Indices;
 
 public class PersonalParser {
 
-	public boolean parseContacts(ElasticsearchClient esClient, OpReturn opre, Feip feip) throws ElasticsearchException, IOException {
+	public boolean parseConcern(ElasticsearchClient esClient, OpReturn opre, Feip feip) throws ElasticsearchException, IOException {
 		// TODO Auto-generated method stub
 		boolean isValid = false;
 		
 		Gson gson = new Gson();
 		
-		ContactsRaw contactsRaw = new ContactsRaw();
+		ConcernRaw concernRaw = new ConcernRaw();
 		
 		try {
-			contactsRaw = gson.fromJson(gson.toJson(feip.getData()),ContactsRaw.class);
+			concernRaw = gson.fromJson(gson.toJson(feip.getData()),ConcernRaw.class);
 		}catch(com.google.gson.JsonSyntaxException e) {
 			return isValid;
 		}
 		
-		Contacts contacts = new Contacts();
+		Concern concern = new Concern();
 		
 		long height;
-		switch(contactsRaw.getOp()) {
+		switch(concernRaw.getOp()) {
 		
 		case "add":
-			contacts.setAddTxid(opre.getId());
+			concern.setAddTxid(opre.getId());
 			
-			if(contactsRaw.getAlg()!=null) {
-				contacts.setAlg(contactsRaw.getAlg());
+			if(concernRaw.getAlg()!=null) {
+				concern.setAlg(concernRaw.getAlg());
 			}
-			contacts.setCiphertext(contactsRaw.getCiphertext());
+			concern.setCiphertext(concernRaw.getCiphertext());
 			
-			contacts.setOwner(opre.getSigner());
-			contacts.setBirthTime(opre.getTime());
-			contacts.setBirthHeight(opre.getHeight());
-			contacts.setLastHeight(opre.getHeight());
-			contacts.setActive(true);
+			concern.setOwner(opre.getSigner());
+			concern.setBirthTime(opre.getTime());
+			concern.setBirthHeight(opre.getHeight());
+			concern.setLastHeight(opre.getHeight());
+			concern.setActive(true);
 			
-			Contacts contacts1 = contacts;
-			esClient.index(i->i.index(Indices.ContactsIndex).id(contacts1.getAddTxid()).document(contacts1));
+			Concern concern1 = concern;
+			esClient.index(i->i.index(Indices.ConcernIndex).id(concern1.getAddTxid()).document(concern1));
 			isValid = true;
 			break;
 		case "delete":
-			if(contactsRaw.getAddTxid() ==null)return isValid;
+			if(concernRaw.getAddTxid() ==null)return isValid;
 			height = opre.getHeight();
-			ContactsRaw contactsRaw1 = contactsRaw;
+			ConcernRaw concernRaw1 = concernRaw;
 			
-			GetResponse<Contacts> result = esClient.get(g->g.index(Indices.ContactsIndex).id(contactsRaw1.getAddTxid()), Contacts.class);
+			GetResponse<Concern> result = esClient.get(g->g.index(Indices.ConcernIndex).id(concernRaw1.getAddTxid()), Concern.class);
 			
 			if(!result.found())return isValid;
 
-			contacts = result.source();
+			concern = result.source();
 			
-			if(!contacts.getOwner().equals(opre.getSigner()))return isValid;
+			if(!concern.getOwner().equals(opre.getSigner()))return isValid;
 			
-			contacts.setActive(false);
-			contacts.setLastHeight(height);
+			concern.setActive(false);
+			concern.setLastHeight(height);
 			
-			Contacts contacts2 = contacts;
-			esClient.index(i->i.index(Indices.ContactsIndex).id(contacts2.getAddTxid()).document(contacts2));
+			Concern concern2 = concern;
+			esClient.index(i->i.index(Indices.ConcernIndex).id(concern2.getAddTxid()).document(concern2));
 			
 			isValid = true;
 			break;
 		case "recover":
-			if(contactsRaw.getAddTxid() ==null)return isValid;
+			if(concernRaw.getAddTxid() ==null)return isValid;
 			height = opre.getHeight();
 			
-			ContactsRaw contactsRaw2 = contactsRaw;
+			ConcernRaw concernRaw2 = concernRaw;
 			
-			GetResponse<Contacts> result1 = esClient.get(g->g.index(Indices.ContactsIndex).id(contactsRaw2.getAddTxid()), Contacts.class);
+			GetResponse<Concern> result1 = esClient.get(g->g.index(Indices.ConcernIndex).id(concernRaw2.getAddTxid()), Concern.class);
 			
 			if(!result1.found())return isValid;
 
-			contacts = result1.source();
+			concern = result1.source();
 			
-			if(!contacts.getOwner().equals(opre.getSigner()))return isValid;
+			if(!concern.getOwner().equals(opre.getSigner()))return isValid;
 			
-			contacts.setActive(true);
-			contacts.setLastHeight(height);
+			concern.setActive(true);
+			concern.setLastHeight(height);
 			
-			Contacts contacts3 = contacts;
-			esClient.index(i->i.index(Indices.ContactsIndex).id(contacts3.getAddTxid()).document(contacts3));
+			Concern concern3 = concern;
+			esClient.index(i->i.index(Indices.ConcernIndex).id(concern3.getAddTxid()).document(concern3));
 			
 			isValid = true;
 			break;
@@ -325,6 +325,10 @@ public class PersonalParser {
 		Statement statement = new Statement();
 
 		statement.setStid(opre.getId());
+		
+		if(statementRaw.getConfirm()==null)return isValid;
+		
+		if(!statementRaw.getConfirm().equals("This is a formal and irrevocable statement."))return isValid;
 		
 		if(statementRaw.getTitle()==null && statementRaw.getContent()==null)return isValid;
 		

@@ -19,6 +19,7 @@ public class CodeHistory {
 	private String[] protocols;
 	private String pubKeyAdmin;
 	private int rate;
+	private String closeStatement;
 	
 	private long cdd;
 
@@ -156,6 +157,14 @@ public class CodeHistory {
 
 	public void setCdd(long cdd) {
 		this.cdd = cdd;
+	}
+
+	public String getCloseStatement() {
+		return closeStatement;
+	}
+
+	public void setCloseStatement(String closeStatement) {
+		this.closeStatement = closeStatement;
 	}
 	
 	

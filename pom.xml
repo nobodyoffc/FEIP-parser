@@ -80,13 +80,6 @@
 		    <artifactId>guava</artifactId>
 		    <version>31.0.1-jre</version>
 		</dependency>
-
-		
-		<dependency>
-		    <groupId>bouncycastle</groupId>
-		    <artifactId>bcprov-jdk15</artifactId>
-		    <version>140</version>
-		</dependency>
 		
 		<dependency>
 		    <groupId>org.bitcoinj</groupId>

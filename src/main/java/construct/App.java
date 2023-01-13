@@ -21,6 +21,8 @@ public class App {
 	private long tCdd;
 	private float tRate;
 	private boolean active;
+	private boolean closed;
+	private String closeStatement;
 	
 	public String getAid() {
 		return aid;
@@ -135,6 +137,18 @@ public class App {
 	}
 	public void setCodes(String[] codes) {
 		this.codes = codes;
+	}
+	public boolean isClosed() {
+		return closed;
+	}
+	public void setClosed(boolean closed) {
+		this.closed = closed;
+	}
+	public String getCloseStatement() {
+		return closeStatement;
+	}
+	public void setCloseStatement(String closeStatement) {
+		this.closeStatement = closeStatement;
 	}
 
 }

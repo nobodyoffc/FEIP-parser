@@ -14,6 +14,7 @@ public class AppRaw {
 	private String[] codes;
 	private String[] services;
 	private int rate;
+	private String closeStatement;
 	
 	public String getAid() {
 		return aid;
@@ -86,5 +87,11 @@ public class AppRaw {
 	}
 	public void setCodes(String[] codes) {
 		this.codes = codes;
+	}
+	public String getCloseStatement() {
+		return closeStatement;
+	}
+	public void setCloseStatement(String closeStatement) {
+		this.closeStatement = closeStatement;
 	}
 }

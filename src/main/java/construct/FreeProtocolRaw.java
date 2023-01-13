@@ -15,6 +15,7 @@ public class FreeProtocolRaw {
 	private String prePid;
 	private String[] fileUrls;
 	private int rate;
+	private String closeStatement;
 	
 	public String getPid() {
 		return pid;
@@ -93,6 +94,12 @@ public class FreeProtocolRaw {
 	}
 	public void setHash(String hash) {
 		this.hash = hash;
+	}
+	public String getCloseStatement() {
+		return closeStatement;
+	}
+	public void setCloseStatement(String closeStatement) {
+		this.closeStatement = closeStatement;
 	}
 	
 

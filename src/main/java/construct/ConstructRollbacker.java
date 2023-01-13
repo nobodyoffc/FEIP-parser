@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.ElasticsearchException;
@@ -15,6 +16,7 @@ import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.json.JsonData;
 import esClient.EsTools;
 import start.Indices;
+import tools.ParseTools;
 
 public class ConstructRollbacker {
 
@@ -27,7 +29,6 @@ public class ConstructRollbacker {
 		error = rollbackCode(esClient,lastHeight);
 		
 		return error;
-		
 	}
 
 	private boolean rollbackFreeProtocol(ElasticsearchClient esClient, long lastHeight) throws Exception {
@@ -38,9 +39,13 @@ public class ConstructRollbacker {
 		ArrayList<String> histIdList = resultMap.get("histIdList");
 		
 		if(itemIdList==null||itemIdList.isEmpty())return error;
+		System.out.println("If Rollbacking is interrupted, reparse all effected ids of index 'protocol': ");
+		ParseTools.gsonPrint(itemIdList);
 		deleteEffectedItems(esClient,Indices.FreeProtocolIndex, itemIdList);
 		if(histIdList==null||histIdList.isEmpty())return error;
 		deleteRolledHists(esClient,Indices.FreeProtocolHistIndex,histIdList);
+		
+		TimeUnit.SECONDS.sleep(2);
 		
 		List<FreeProtocolHistory>reparseHistList = EsTools.getHistsForReparse(esClient,Indices.FreeProtocolHistIndex,"pid",itemIdList, FreeProtocolHistory.class);
 
@@ -108,9 +113,12 @@ public class ConstructRollbacker {
 		ArrayList<String> histIdList = resultMap.get("histIdList");
 		
 		if(itemIdList==null||itemIdList.isEmpty())return error;
+		System.out.println("If Rollbacking is interrupted, reparse all effected ids of index 'service': ");
+		ParseTools.gsonPrint(itemIdList);
 		deleteEffectedItems(esClient,Indices.ServiceIndex,itemIdList);
 		if(histIdList==null||histIdList.isEmpty())return error;
 		deleteRolledHists(esClient,Indices.ServiceHistIndex,histIdList);
+		TimeUnit.SECONDS.sleep(2);
 		
 		List<ServiceHistory>reparseHistList = EsTools.getHistsForReparse(esClient,Indices.ServiceHistIndex,"sid",itemIdList,ServiceHistory.class);
 
@@ -168,9 +176,12 @@ public class ConstructRollbacker {
 		ArrayList<String> histIdList = resultMap.get("histIdList");
 		
 		if(itemIdList==null||itemIdList.isEmpty())return error;
+		System.out.println("If Rollbacking is interrupted, reparse all effected ids of index 'app': ");
+		ParseTools.gsonPrint(itemIdList);
 		deleteEffectedItems(esClient,Indices.AppIndex,itemIdList);
 		if(histIdList==null||histIdList.isEmpty())return error;
 		deleteRolledHists(esClient,Indices.AppHistIndex,histIdList);
+		TimeUnit.SECONDS.sleep(2);
 		
 		List<AppHistory>reparseHistList = EsTools.getHistsForReparse(esClient,Indices.AppHistIndex,"aid",itemIdList,AppHistory.class);
 
@@ -228,9 +239,12 @@ public class ConstructRollbacker {
 		ArrayList<String> histIdList = resultMap.get("histIdList");
 		
 		if(itemIdList==null||itemIdList.isEmpty())return error;
+		System.out.println("If Rollbacking is interrupted, reparse all effected ids of index 'code': ");
+		ParseTools.gsonPrint(itemIdList);
 		deleteEffectedItems(esClient,Indices.CodeIndex,itemIdList);
 		if(histIdList==null||histIdList.isEmpty())return error;
 		deleteRolledHists(esClient,Indices.CodeHistIndex,histIdList);
+		TimeUnit.SECONDS.sleep(2);
 		
 		List<CodeHistory>reparseHistList = EsTools.getHistsForReparse(esClient,Indices.CodeHistIndex,"codeId",itemIdList,CodeHistory.class);
 

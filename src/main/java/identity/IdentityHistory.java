@@ -13,9 +13,12 @@ public class IdentityHistory {
 	private String data_op;
 	private String data_name;
 	
+	private String data_priKey;
 	private String data_master;
 	private String[] data_homepages;
 	private double data_noticeFee;
+	
+	
 	public String getId() {
 		return id;
 	}
@@ -93,6 +96,12 @@ public class IdentityHistory {
 	}
 	public void setData_noticeFee(double d) {
 		this.data_noticeFee = d;
+	}
+	public String getData_priKey() {
+		return data_priKey;
+	}
+	public void setData_priKey(String data_priKey) {
+		this.data_priKey = data_priKey;
 	}
 
 
