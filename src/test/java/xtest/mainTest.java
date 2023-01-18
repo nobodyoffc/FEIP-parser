@@ -28,47 +28,14 @@ public class mainTest {
 //		System.out.println("ES Client was created. The cluster is: " + vb.get(0).cluster());
 //		////////////////////
 		
-		String hash = Hash.Sha256x2("test update.");
-		System.out.println(hash);
-
-		
-		String priKey = "18e14a7b6a307f426a94f8114701e7c8e774e7f9a47e2c2035db29a206321725";//"L2bHRej6Fxxipvb4TiR5bu1rkT3tRp8yWEsUy4R1Zb8VMm2x7sd8";
-		
-		String pubKey = FchTools.priKeyToPubKey(priKey);
-		
-		String addr = FchTools.pubKeyToFchAddr(pubKey);
-		
-		String priKey32 = FchTools.getPriKey32(priKey);
-		
-		Map<String, String> addrs = FchTools.pkToAddresses(pubKey);
+//		String script = "5221030be1d7e633feb2338a74a860e76d893bac525f35a5813cb7b21e27ba1bc8312a2102536e4f3a6871831fa91089a5d5a950b96a31c861956f01459c0cd4f4374b2f672103f0145ddf5debc7169952b17b5c6a8a566b38742b6aa7b33b667c0a7fa73762e253ae";
+//		
+//		String addr = FchTools.scriptToMultiAddr(script);
+//		
+//		System.out.println("addr:" + addr);
 		
 		
-		String pubKey65 = FchTools.recoverPK33ToPK65(pubKey);
-	
-		System.out.println("pubKey65: "+pubKey65);
-		
-		String pukHa3 = Hash.sha3(pubKey65);
-		
-		System.out.println(" Keccak-256 1: "+pukHa3);
-
-		
-		String ethAddr = FchTools.pubKeyToEthAddr(pubKey65);
-		
-		
-		ParseTools.gsonPrint(addrs);
-		
-		System.out.println("prikey32: "+priKey32);
-		
-		System.out.println("pubKey: "+pubKey);
-		
-		System.out.println("FCH addr: "+addr);
-		
-		System.out.println("ETH addr: "+ethAddr);
-		
-		//FCH addr: FCyZBfPA7wiEUvGZHs71sNYGAdwyFkLgE9
-		
-		
-		//	System.out.println("result:" + gson.toJson(result));
+		System.out.println("hash:" + Hash.Sha256("39c07664d5565a79db87d5a705f13c5712d4cea0f25b7b8df0c01414def1426f"));
 
 		//esClient.shutdown();
 

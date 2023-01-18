@@ -14,7 +14,6 @@ import opReturn.Feip;
 import opReturn.OpReturn;
 import start.Indices;
 import start.Start;
-import startTest.Start1;
 import tools.ParseTools;
 
 public class OrganizationParser {
@@ -43,7 +42,7 @@ public class OrganizationParser {
 		case "create":
 			if(groupRaw.getName()==null)return null;
 			if(groupRaw.getGid()!=null)return null;
-			if(opre.getHeight()>Start1.CddCheckHeight && opre.getCdd()<Start1.CddRequired*100)return null;
+			if(opre.getHeight()>Start.CddCheckHeight && opre.getCdd()<Start.CddRequired*100)return null;
 			groupHist.setId(opre.getId());
 			groupHist.setGid(opre.getId());
 			groupHist.setHeight(opre.getHeight());
@@ -75,7 +74,7 @@ public class OrganizationParser {
 			
 		case "join":
 			if(groupRaw.getGid()==null)return null;
-			if(opre.getHeight()>Start1.CddCheckHeight && opre.getCdd()<Start1.CddRequired)return null;
+			if(opre.getHeight()>Start.CddCheckHeight && opre.getCdd()<Start.CddRequired)return null;
 			groupHist.setGid(groupRaw.getGid());
 			
 			groupHist.setId(opre.getId());
@@ -566,6 +565,9 @@ public class OrganizationParser {
 					isValid = false;
 					break;
 					}
+				}else {
+					isValid = false;
+					break;
 				}
 			}
 			

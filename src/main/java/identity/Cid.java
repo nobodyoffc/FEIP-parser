@@ -8,6 +8,7 @@ public class Cid {
 	private String priKey;
 	private String master;
 	private String[] homepages;
+	private String script;
 	private double noticeFee;
 	private long reputation;
 	private long hot;
@@ -101,6 +102,14 @@ public class Cid {
 
 	public void setPriKey(String priKey) {
 		this.priKey = priKey;
+	}
+
+	public String getScript() {
+		return script;
+	}
+
+	public void setScript(String script) {
+		this.script = script;
 	}
 	
 

@@ -97,7 +97,7 @@ public class ConstructRollbacker {
 		EsTools.bulkDeleteList(esClient, index, histIdList);
 	}
 	
-	private void reparseFreeProtocol(ElasticsearchClient esClient, List<FreeProtocolHistory> reparseHistList) throws ElasticsearchException, IOException {
+	private void reparseFreeProtocol(ElasticsearchClient esClient, List<FreeProtocolHistory> reparseHistList) throws ElasticsearchException, IOException, InterruptedException {
 		// TODO Auto-generated method stub
 		if(reparseHistList==null)return;
 		for(FreeProtocolHistory freeProtocolHist: reparseHistList) {
@@ -223,7 +223,7 @@ public class ConstructRollbacker {
 		return resultMap;
 	}
 
-	private void reparseApp(ElasticsearchClient esClient, List<AppHistory> reparseHistList) throws ElasticsearchException, IOException {
+	private void reparseApp(ElasticsearchClient esClient, List<AppHistory> reparseHistList) throws ElasticsearchException, IOException, InterruptedException {
 		// TODO Auto-generated method stub
 		if(reparseHistList==null)return;
 		for(AppHistory appHist: reparseHistList) {

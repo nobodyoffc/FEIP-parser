@@ -9,6 +9,7 @@ public class AppRaw {
 	private String desc;
 	private String[] types;
 	private String[] urls;
+	private Download[] downloads;
 	private String pubKeyAdmin;
 	private String[] protocols;
 	private String[] codes;
@@ -93,5 +94,11 @@ public class AppRaw {
 	}
 	public void setCloseStatement(String closeStatement) {
 		this.closeStatement = closeStatement;
+	}
+	public Download[] getDownloads() {
+		return downloads;
+	}
+	public void setDownloads(Download[] downloads) {
+		this.downloads = downloads;
 	}
 }

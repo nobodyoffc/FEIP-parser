@@ -196,6 +196,7 @@ public class FchTools {
  		
 		return Base58.base58Encode(addrRaw);
 	}
+	
 	public static String hash160ToBTCAddr(String hash160Hex) {
 
 		byte[] b =BytesTools.hexToByteArray(hash160Hex);
@@ -225,6 +226,21 @@ public class FchTools {
  		
 		return Base58.base58Encode(addrRaw);
 	}
+	
+	public static String hash160ToMultiAddr(byte[] hash160Bytes) {
+		byte[] d = {0x05};
+		byte[] e = new byte[21];
+		System.arraycopy(d, 0, e, 0, 1);
+		System.arraycopy(hash160Bytes, 0, e, 1, 20);
+		
+ 		byte[] c = Hash.Sha256x2(e);
+ 		byte[] f = new byte[4];
+		System.arraycopy(c, 0, f, 0, 4);
+ 		byte[] addrRaw = BytesTools.bytesMerger(e, f);
+ 		
+		return Base58.base58Encode(addrRaw);
+	}
+	
 	public static String hash160ToDOGEAddr(String hash160Hex) {
 
 		byte[] b =BytesTools.hexToByteArray(hash160Hex);
@@ -386,7 +402,13 @@ public class FchTools {
 		
 		return address;
 	}
-
+	public static String scriptToMultiAddr(String script) {
+	byte[] b = Hash.Sha256(BytesTools.hexToByteArray(script));		
+	byte[] h = Hash.Ripemd160(b);
+	String address = FchTools.hash160ToMultiAddr(h);
+	return address;
+	}
+	
 	public static String priKeyToPubKey(String priKey) {
 		// TODO Auto-generated method stub
 		//私钥如果长度为38字节，则为压缩格式。构成为：前缀80+32位私钥+压缩标志01+4位校验位。

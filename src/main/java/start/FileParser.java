@@ -1,4 +1,4 @@
-package startTest;
+package start;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -28,7 +28,6 @@ import construct.ConstructRollbacker;
 import construct.FreeProtocolHistory;
 import construct.ServiceHistory;
 import esClient.EsTools;
-import esClient.EsTools.MgetResult;
 import identity.IdentityHistory;
 import identity.IdentityParser;
 import identity.IdentityRollbacker;
@@ -43,9 +42,6 @@ import organization.OrganizationRollbacker;
 import organization.TeamHistory;
 import personal.PersonalParser;
 import personal.PersonalRollbacker;
-import start.Indices;
-import start.ParseMark;
-import start.Start;
 import tools.ParseTools;
 
 public class FileParser {
@@ -59,7 +55,7 @@ public class FileParser {
 	private String lastId = null;
 	
 	enum FEIP_NAME{
-		CID,ABANDON,MASTER,HOMEPAGE,NOTICE_FEE,REPUTATION,SERVICE,PROTOCOL,APP,CODE,CONTACTS,MAIL,SAFE,STATEMENT,GROUP,TEAM
+		CID,ABANDON,MASTER,HOMEPAGE,NOTICE_FEE,REPUTATION,SERVICE,PROTOCOL,APP,CODE,CONTACTS,MAIL,SAFE,STATEMENT,GROUP,TEAM, P2SH
 	}
 	
 	private static final Logger log = LoggerFactory.getLogger(FileParser.class);
@@ -257,6 +253,13 @@ public class FileParser {
 				isValid = organizationParser.parseTeam(esClient,teamHist);	
 				if(isValid)esClient.index(i->i.index(Indices.TeamHistIndex).id(teamHist.getId()).document(teamHist));
 				break;
+			case P2SH:
+				System.out.println("P2SH.");
+				IdentityHistory cidHist5 = cidParser.makeP2SH(opre,feip);
+				if(cidHist5==null)break;
+				isValid = cidParser.parseP2SH(esClient,cidHist5);	
+				if(isValid)esClient.index(i->i.index(Indices.CidHistIndex).id(cidHist5.getId()).document(cidHist5));
+				break;
 			default:
 				break;
 			}
@@ -327,6 +330,7 @@ public class FileParser {
 		if(sn.equals("17"))return FEIP_NAME.SAFE;
 		if(sn.equals("18"))return FEIP_NAME.TEAM;
 		if(sn.equals("19"))return FEIP_NAME.GROUP;
+		if(sn.equals("20"))return FEIP_NAME.P2SH;
 
 		return null;
 	}

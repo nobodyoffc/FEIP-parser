@@ -15,6 +15,7 @@ public class IdentityHistory {
 	
 	private String data_priKey;
 	private String data_master;
+	private String data_script;
 	private String[] data_homepages;
 	private double data_noticeFee;
 	
@@ -102,6 +103,12 @@ public class IdentityHistory {
 	}
 	public void setData_priKey(String data_priKey) {
 		this.data_priKey = data_priKey;
+	}
+	public String getData_script() {
+		return data_script;
+	}
+	public void setData_script(String data_script) {
+		this.data_script = data_script;
 	}
 
 

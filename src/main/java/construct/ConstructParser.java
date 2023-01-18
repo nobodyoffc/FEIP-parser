@@ -1,6 +1,7 @@
 package construct;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import com.google.gson.Gson;
 
@@ -283,6 +284,7 @@ public class ConstructParser {
 			if(appRaw.getDesc()!=null)appHist.setDesc(appRaw.getDesc());
 			if(appRaw.getTypes()!=null)appHist.setTypes(appRaw.getTypes());
 			if(appRaw.getUrls()!=null)appHist.setUrls(appRaw.getUrls());
+			if(appRaw.getDownloads()!=null)appHist.setDownloads(appRaw.getDownloads());
 			if(appRaw.getPubKeyAdmin()!=null)appHist.setPubKeyAdmin(appRaw.getPubKeyAdmin());
 			if(appRaw.getProtocols()!=null)appHist.setProtocols(appRaw.getProtocols());
 			if(appRaw.getServices() !=null)appHist.setServices(appRaw.getServices());
@@ -305,6 +307,7 @@ public class ConstructParser {
 			if(appRaw.getDesc()!=null)appHist.setDesc(appRaw.getDesc());
 			if(appRaw.getTypes()!=null)appHist.setTypes(appRaw.getTypes());
 			if(appRaw.getUrls()!=null)appHist.setUrls(appRaw.getUrls());
+			if(appRaw.getDownloads()!=null)appHist.setDownloads(appRaw.getDownloads());
 			if(appRaw.getPubKeyAdmin()!=null)appHist.setPubKeyAdmin(appRaw.getPubKeyAdmin());
 			if(appRaw.getProtocols()!=null)appHist.setProtocols(appRaw.getProtocols());
 			if(appRaw.getServices() !=null)appHist.setServices(appRaw.getServices());
@@ -474,7 +477,7 @@ public class ConstructParser {
 		return codeHist; 
 	}
 
-	public boolean parseFreeProtocol(ElasticsearchClient esClient, FreeProtocolHistory freeProtocolHist) throws ElasticsearchException, IOException {
+	public boolean parseFreeProtocol(ElasticsearchClient esClient, FreeProtocolHistory freeProtocolHist) throws ElasticsearchException, IOException, InterruptedException {
 		// TODO Auto-generated method stub
 		boolean isValid = false;
 		FreeProtocol freeProtocol;
@@ -626,6 +629,7 @@ public class ConstructParser {
 			break;
 		
 		case "close":	
+			
 			freeProtocol = EsTools.getById(esClient, Indices.FreeProtocolIndex, freeProtocolHist.getPid(), FreeProtocol.class);
 			
 			if(freeProtocol==null) {
@@ -645,19 +649,21 @@ public class ConstructParser {
 					isValid = false;
 					break;
 					}
+				}else {
+					isValid = false;
+					break;
 				}
 			}
 
 			
 			FreeProtocol freeProtocol1 = freeProtocol;
 			freeProtocol1.setClosed(true);
+			freeProtocol1.setActive(false);
 			freeProtocol1.setLastTxid(freeProtocolHist.getId());
 			freeProtocol1.setLastTime(freeProtocolHist.getTime());
 			freeProtocol1.setLastHeight(freeProtocolHist.getHeight());
 			esClient.index(i->i.index(Indices.FreeProtocolIndex).id(freeProtocolHist.getPid()).document(freeProtocol1));
 			isValid = true;
-
-			
 			break;
 		case "rate":
 			freeProtocol = EsTools.getById(esClient, Indices.FreeProtocolIndex, freeProtocolHist.getPid(), FreeProtocol.class);
@@ -685,6 +691,8 @@ public class ConstructParser {
 			FreeProtocol freeProtocol3 = freeProtocol;
 			esClient.index(i->i.index(Indices.FreeProtocolIndex).id(freeProtocolHist.getPid()).document(freeProtocol3));
 			isValid = true;
+			
+			TimeUnit.SECONDS.sleep(10);
 			break;
 			
 		}
@@ -846,12 +854,16 @@ public class ConstructParser {
 					isValid = false;
 					break;
 					}
+				}else {
+					isValid = false;
+					break;
 				}
 			}
 
 			
 			Service service1 = service;
 			service1.setClosed(true);
+			service1.setActive(false);
 			service1.setLastTxid(serviceHist.getId());
 			service1.setLastTime(serviceHist.getTime());
 			service1.setLastHeight(serviceHist.getHeight());
@@ -895,11 +907,12 @@ public class ConstructParser {
 			
 			esClient.index(i->i.index(Indices.ServiceIndex).id(serviceHist.getSid()).document(service5));
 			isValid = true;
+
 			break;
 		}
 		return isValid;
 	}
-	public boolean parseApp(ElasticsearchClient esClient, construct.AppHistory appHist) throws ElasticsearchException, IOException {
+	public boolean parseApp(ElasticsearchClient esClient, construct.AppHistory appHist) throws ElasticsearchException, IOException, InterruptedException {
 		// TODO Auto-generated method stub
 		boolean isValid = false;
 		App app;
@@ -913,6 +926,7 @@ public class ConstructParser {
 				app.setLocalNames(appHist.getLocalNames());
 				app.setDesc(appHist.getDesc());
 				app.setUrls(appHist.getUrls());
+				app.setDownloads(appHist.getDownloads());
 				app.setPubKeyAdmin(appHist.getPubKeyAdmin());
 				app.setOwner(appHist.getSigner());
 				app.setProtocols(appHist.getProtocols());
@@ -1024,6 +1038,7 @@ public class ConstructParser {
 			app.setLocalNames(appHist.getLocalNames());
 			app.setDesc(appHist.getDesc());
 			app.setUrls(appHist.getUrls());
+			app.setDownloads(appHist.getDownloads());
 			app.setPubKeyAdmin(appHist.getPubKeyAdmin());
 			app.setOwner(appHist.getSigner());
 			app.setProtocols(appHist.getProtocols());
@@ -1059,19 +1074,22 @@ public class ConstructParser {
 					isValid = false;
 					break;
 					}
+				}else {
+					isValid = false;
+					break;
 				}
 			}
 
 			
 			App app1 = app;
 			app1.setClosed(true);
+			app1.setActive(false);
 			app1.setLastTxid(appHist.getId());
 			app1.setLastTime(appHist.getTime());
 			app1.setLastHeight(appHist.getHeight());
 			esClient.index(i->i.index(Indices.AppIndex).id(appHist.getAid()).document(app1));
 			isValid = true;
 
-			
 			break;
 			
 		case "rate":
@@ -1269,11 +1287,15 @@ public class ConstructParser {
 					isValid = false;
 					break;
 					}
+				}else {
+					isValid = false;
+					break;
 				}
 			}
 			
 			Code code1 = code;
 			code1.setClosed(true);
+			code1.setActive(false);
 			code1.setLastTxid(codeHist.getId());
 			code1.setLastTime(codeHist.getTime());
 			code1.setLastHeight(codeHist.getHeight());

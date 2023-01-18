@@ -21,7 +21,7 @@ public class util {
             
             Integer intVal = Integer.parseInt(sub, 16);
             bytes[i / 2] = intVal.byteValue();
-            String hex = "".format("0x%x", bytes[i / 2]);
+           // String hex = "".format("0x%x", bytes[i / 2]);
         }
         return bytes;
     }

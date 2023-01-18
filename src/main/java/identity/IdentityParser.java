@@ -12,8 +12,8 @@ import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.ElasticsearchException;
 import co.elastic.clients.elasticsearch.core.GetResponse;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
-import opReturn.OpReturn;
 import opReturn.Feip;
+import opReturn.OpReturn;
 import start.Indices;
 import start.Start;
 import tools.FchTools;
@@ -52,6 +52,26 @@ public class IdentityParser {
 		return cidHist; 
 	}
 	
+	public IdentityHistory makeP2SH(OpReturn opre, Feip feip) {
+		// TODO Auto-generated method stub
+		Gson gson = new Gson();
+		P2SHRaw p2SHRaw = gson.fromJson(gson.toJson(feip.getData()),P2SHRaw.class);
+		if(! FchTools.scriptToMultiAddr(p2SHRaw.getScript()).equals(opre.getSigner()))return null;
+		
+		IdentityHistory cidHist = new IdentityHistory();
+		
+		cidHist.setSigner(opre.getSigner());
+		cidHist.setSn(feip.getSn());
+		cidHist.setVer(feip.getVer());
+		cidHist.setHeight(opre.getHeight());
+		cidHist.setId(opre.getId());
+		cidHist.setIndex(opre.getTxIndex());
+		cidHist.setTime(opre.getTime());
+		cidHist.setData_script(p2SHRaw.getScript());
+	
+		return cidHist; 
+	}
+
 	public IdentityHistory makeAbandon(OpReturn opre, Feip feip) {
 		// TODO Auto-generated method stub
 		Gson gson = new Gson();
@@ -183,8 +203,9 @@ public class IdentityParser {
 		if(cidHist.getSn().equals("3"))return parseCid(esClient, cidHist);
 		if(cidHist.getSn().equals("4"))return parseAbandon(esClient, cidHist);
 		if(cidHist.getSn().equals("6"))return parseMaster(esClient, cidHist);
-		if(cidHist.getSn().equals("26"))return parseHomepage(esClient, cidHist);
-		if(cidHist.getSn().equals("27"))return parseNoticeFee(esClient, cidHist);
+		if(cidHist.getSn().equals("9"))return parseHomepage(esClient, cidHist);
+		if(cidHist.getSn().equals("10"))return parseNoticeFee(esClient, cidHist);
+		if(cidHist.getSn().equals("20"))return parseP2SH(esClient, cidHist);
 		return false;
 	}
 
@@ -417,5 +438,27 @@ public class IdentityParser {
 		return isValid;
 	}
 
-
+	public boolean parseP2SH(ElasticsearchClient esClient, IdentityHistory cidHist) throws ElasticsearchException, IOException {
+		// TODO Auto-generated method stub
+		boolean isValid = false;
+		GetResponse<Cid> resultGetCid = esClient.get(g->g.index(Indices.CidIndex).id(cidHist.getSigner()), Cid.class);
+		
+		if(resultGetCid.found()) {
+			Cid cid  = resultGetCid.source();	
+			if(cid.getScript()==null) {
+				cid.setScript(cidHist.getData_script());
+				cid.setLastHeight(cidHist.getHeight());
+				esClient.index(i->i.index(Indices.CidIndex).id(cidHist.getSigner()).document(cid));
+				isValid = true;
+			}
+		}else {
+			Cid cid = new Cid();
+			cid.setId(cidHist.getSigner());
+			cid.setScript(cidHist.getData_script());
+			cid.setLastHeight(cidHist.getHeight());
+			esClient.index(i->i.index(Indices.CidIndex).id(cidHist.getSigner()).document(cid));
+			isValid = true;
+		}
+		return isValid;
+	}
 }
