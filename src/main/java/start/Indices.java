@@ -19,7 +19,7 @@ public class Indices {
 	public static final String ParseMark = "parse_mark";
 	
 	public static final String CidIndex = "cid";
-	public static final String CidHistIndex = "cid_history";
+	public static final String IdentityHistIndex = "cid_history";
 	public static final String RepuHistIndex = "reputation_history";
 
 	public static final String FreeProtocolIndex = "protocol";
@@ -48,6 +48,8 @@ public class Indices {
 	public static final String GroupHistIndex = "group_history";
 	public static final String TeamHistIndex = "team_history";
 
+	public static final String P2SHIndex = "p2sh";
+
 	public static void createAllIndices(ElasticsearchClient esClient) throws ElasticsearchException, IOException {
 			
 		if(esClient==null) {
@@ -55,11 +57,13 @@ public class Indices {
 			return;
 		}
 
-		String cidJsonStr = "{\"mappings\":{\"properties\":{\"cid\":{\"type\":\"wildcard\"},\"height\":{\"type\":\"long\"},\"homepages\":{\"type\":\"text\"},\"hot\":{\"type\":\"long\"},\"id\":{\"type\":\"keyword\"},\"priKey\":{\"type\":\"keyword\"},\"script\":{\"type\":\"keyword\"},\"lastHeight\":{\"type\":\"long\"},\"master\":{\"type\":\"wildcard\"},\"nameTime\":{\"type\":\"long\"},\"noticeFee\":{\"type\":\"float\"},\"reputation\":{\"type\":\"long\"},\"usedCids\":{\"type\":\"wildcard\"}}}}";
-		String cidHistJsonStr = "{\"mappings\":{\"properties\":{\"data_name\":{\"type\":\"wildcard\"},\"data_priKey\":{\"type\":\"keyword\"},\"data_master\":{\"type\":\"wildcard\"},\"data_script\":{\"type\":\"keyword\"},\"data_homepages\":{\"type\":\"wildcard\"},\"data_noticeFee\":{\"type\":\"float\"},\"data_op\":{\"type\":\"wildcard\"},\"height\":{\"type\":\"long\"},\"id\":{\"type\":\"keyword\"},\"index\":{\"type\":\"short\"},\"signer\":{\"type\":\"wildcard\"},\"sn\":{\"type\":\"short\"},\"time\":{\"type\":\"long\"},\"ver\":{\"type\":\"short\"}}}}";
+		String cidJsonStr = "{\"mappings\":{\"properties\":{\"cid\":{\"type\":\"wildcard\"},\"height\":{\"type\":\"long\"},\"homepages\":{\"type\":\"text\"},\"hot\":{\"type\":\"long\"},\"id\":{\"type\":\"keyword\"},\"priKey\":{\"type\":\"keyword\"},\"lastHeight\":{\"type\":\"long\"},\"master\":{\"type\":\"wildcard\"},\"nameTime\":{\"type\":\"long\"},\"noticeFee\":{\"type\":\"float\"},\"reputation\":{\"type\":\"long\"},\"usedCids\":{\"type\":\"wildcard\"}}}}";
+		String cidHistJsonStr = "{\"mappings\":{\"properties\":{\"data_name\":{\"type\":\"wildcard\"},\"data_priKey\":{\"type\":\"keyword\"},\"data_master\":{\"type\":\"wildcard\"},\"data_homepages\":{\"type\":\"wildcard\"},\"data_noticeFee\":{\"type\":\"float\"},\"data_op\":{\"type\":\"wildcard\"},\"height\":{\"type\":\"long\"},\"id\":{\"type\":\"keyword\"},\"index\":{\"type\":\"short\"},\"signer\":{\"type\":\"wildcard\"},\"sn\":{\"type\":\"short\"},\"time\":{\"type\":\"long\"},\"ver\":{\"type\":\"short\"}}}}";
 		String repuHistJsonStr = "{\"mappings\":{\"properties\":{\"cause\":{\"type\":\"text\"},\"height\":{\"type\":\"long\"},\"hot\":{\"type\":\"long\"},\"id\":{\"type\":\"keyword\"},\"index\":{\"type\":\"short\"},\"ratee\":{\"type\":\"wildcard\"},\"rater\":{\"type\":\"wildcard\"},\"reputation\":{\"type\":\"long\"},\"time\":{\"type\":\"long\"}}}}";
 		String parseMarkJsonStr = "{\"mappings\":{\"properties\":{\"fileName\":{\"type\":\"wildcard\"},\"lastHeight\":{\"type\":\"long\"},\"lastId\":{\"type\":\"keyword\"},\"lastIndex\":{\"type\":\"long\"},\"length\":{\"type\":\"short\"},\"pointer\":{\"type\":\"long\"}}}}";		
 
+		String p2shJsonStr = "{\"mappings\":{\"properties\":{\"id\":{\"type\":\"wildcard\"},\"redeemScript\":{\"type\":\"keyword\"},\"m\":{\"type\":\"short\"},\"n\":{\"type\":\"short\"},\"pubKeys\":{\"type\":\"keyword\"},\"birthHeight\":{\"type\":\"long\"},\"birthTime\":{\"type\":\"long\"},\"birthTxid\":{\"type\":\"keyword\"}}}}";
+		
 		String protocolJsonStr = "{\"mappings\":{\"properties\":{\"pid\":{\"type\":\"keyword\"},\"type\":{\"type\":\"wildcard\"},\"sn\":{\"type\":\"wildcard\"},\"ver\":{\"type\":\"wildcard\"},\"name\":{\"type\":\"wildcard\"},\"hash\":{\"type\":\"keyword\"},\"lang\":{\"type\":\"wildcard\"},\"desc\":{\"type\":\"text\"},\"authors\":{\"type\":\"wildcard\"},\"prePid\":{\"type\":\"keyword\"},\"fileUrls\":{\"type\":\"text\"},\"title\":{\"type\":\"wildcard\"},\"owner\":{\"type\":\"wildcard\"},\"birthTxid\":{\"type\":\"keyword\"},\"birthTime\":{\"type\":\"long\"},\"birthHeight\":{\"type\":\"long\"},\"lastTxid\":{\"type\":\"keyword\"},\"lastTime\":{\"type\":\"long\"},\"lastHeight\":{\"type\":\"long\"},\"tCdd\":{\"type\":\"long\"},\"tRate\":{\"type\":\"float\"},\"active\":{\"type\":\"boolean\"},\"closed\":{\"type\":\"boolean\"},\"closeStatement\":{\"type\":\"text\"}}}}";
 		String protocolHistJsonStr = "{\"mappings\":{\"properties\":{\"id\":{\"type\":\"keyword\"},\"height\":{\"type\":\"long\"},\"index\":{\"type\":\"short\"},\"time\":{\"type\":\"long\"},\"type\":{\"type\":\"wildcard\"},\"sn\":{\"type\":\"wildcard\"},\"ver\":{\"type\":\"wildcard\"},\"name\":{\"type\":\"wildcard\"},\"hash\":{\"type\":\"keyword\"},\"desc\":{\"type\":\"text\"},\"authors\":{\"type\":\"wildcard\"},\"lang\":{\"type\":\"wildcard\"},\"prePid\":{\"type\":\"keyword\"},\"fileUrls\":{\"type\":\"text\"},\"signer\":{\"type\":\"wildcard\"},\"pid\":{\"type\":\"keyword\"},\"op\":{\"type\":\"keyword\"},\"rate\":{\"type\":\"short\"},\"cdd\":{\"type\":\"long\"},\"closeStatement\":{\"type\":\"text\"}}}}";
 		
@@ -87,8 +91,9 @@ public class Indices {
 		InputStream cidHistJsonStrIs = new ByteArrayInputStream(cidHistJsonStr.getBytes());
 		InputStream repuHistJsonStrIs = new ByteArrayInputStream(repuHistJsonStr.getBytes());
 		InputStream parseMarkJsonStrIs = new ByteArrayInputStream(parseMarkJsonStr.getBytes());
-
 		
+		InputStream p2shJsonStrIs = new ByteArrayInputStream(p2shJsonStr.getBytes());
+
 		InputStream protocolJsonStrIs = new ByteArrayInputStream(protocolJsonStr.getBytes());
 		InputStream appJsonStrIs = new ByteArrayInputStream(appJsonStr.getBytes());
 		InputStream serviceJsonStrIs = new ByteArrayInputStream(serviceJsonStr.getBytes());
@@ -109,6 +114,20 @@ public class Indices {
 		
 		InputStream teamJsonStrIs = new ByteArrayInputStream(teamJsonStr.getBytes());
 		InputStream teamHistJsonStrIs = new ByteArrayInputStream(teamHistJsonStr.getBytes());
+		
+		try {
+			CreateIndexResponse req = esClient.indices().create(c -> c.index(Indices.P2SHIndex).withJson(p2shJsonStrIs));
+			p2shJsonStrIs.close();
+			if(req.acknowledged()) {
+				log.info("Index p2sh created.");
+			}else {
+				log.info("Index p2sh creating failed.");
+				return;
+			}
+		}catch(ElasticsearchException e) {
+			log.info("Index p2sh creating failed.",e);
+			return;
+		}
 		
 		try {
 			CreateIndexResponse req = esClient.indices().create(c -> c.index(Indices.TeamHistIndex).withJson(teamHistJsonStrIs));
@@ -363,7 +382,7 @@ public class Indices {
 		}
 		
 		try {
-			CreateIndexResponse req = esClient.indices().create(c -> c.index(Indices.CidHistIndex).withJson(cidHistJsonStrIs));
+			CreateIndexResponse req = esClient.indices().create(c -> c.index(Indices.IdentityHistIndex).withJson(cidHistJsonStrIs));
 			cidHistJsonStrIs.close();
 			if(req.acknowledged()) {
 			log.info("Index  cid_history created.");
@@ -397,6 +416,16 @@ public class Indices {
 		if(esClient==null) {
 			System.out.println("Create a Java client for ES first.");
 			return;
+		}
+		
+		try {
+			DeleteIndexResponse req = esClient.indices().delete(c -> c.index(Indices.P2SHIndex));
+
+			if(req.acknowledged()) {
+			log.info("Index p2sh deleted.");
+			}
+		}catch(ElasticsearchException e) {
+			log.info("Index p2sh deleting failed.",e);
 		}
 		
 		try {
@@ -580,7 +609,7 @@ public class Indices {
 		}
 
 		try {
-			DeleteIndexResponse req = esClient.indices().delete(c -> c.index(Indices.CidHistIndex));
+			DeleteIndexResponse req = esClient.indices().delete(c -> c.index(Indices.IdentityHistIndex));
 
 			if(req.acknowledged()) {
 			log.info("Index  block deleted.");

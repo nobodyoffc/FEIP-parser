@@ -62,8 +62,8 @@ public class FileParser {
 	
 	public boolean parseFile(ElasticsearchClient esClient, boolean isRollback) throws Exception {
 	
-		IdentityRollbacker cidRollbacker = new IdentityRollbacker();
-		IdentityParser cidParser = new IdentityParser();
+		IdentityRollbacker identityRollbacker = new IdentityRollbacker();
+		IdentityParser identityParser = new IdentityParser();
 
 		ConstructParser constructParser = new ConstructParser();
 		ConstructRollbacker constructRollbacker = new ConstructRollbacker();
@@ -75,7 +75,7 @@ public class FileParser {
 		OrganizationRollbacker organizationRollbacker = new OrganizationRollbacker();
 		
 		if(isRollback) {
-			cidRollbacker.rollback(esClient, lastHeight);
+			identityRollbacker.rollback(esClient, lastHeight);
 			constructRollbacker.rollback(esClient, lastHeight);
 			personalRollbacker.rollback(esClient, lastHeight);
 			organizationRollbacker.rollback(esClient, lastHeight);
@@ -128,7 +128,7 @@ public class FileParser {
 			
 			
 			if(readOpResult.isRollback()) {
-				cidRollbacker.rollback(esClient,readOpResult.getOpReturn().getHeight());
+				identityRollbacker.rollback(esClient,readOpResult.getOpReturn().getHeight());
 				constructRollbacker.rollback(esClient, readOpResult.getOpReturn().getHeight());
 				continue;
 			}
@@ -155,44 +155,44 @@ public class FileParser {
 			
 			case CID:
 				System.out.println("Cid.");
-				IdentityHistory cidHist = cidParser.makeCid(opre,feip);	
-				if(cidHist==null)break;
-				isValid = cidParser.parseCidInfo(esClient,cidHist);	
-				if(isValid)esClient.index(i->i.index(Indices.CidHistIndex).id(cidHist.getId()).document(cidHist));
+				IdentityHistory identityHist = identityParser.makeCid(opre,feip);	
+				if(identityHist==null)break;
+				isValid = identityParser.parseCidInfo(esClient,identityHist);	
+				if(isValid)esClient.index(i->i.index(Indices.IdentityHistIndex).id(identityHist.getId()).document(identityHist));
 				break;
 			case ABANDON:
 				System.out.println("abandon.");
-				IdentityHistory cidHist4 = cidParser.makeAbandon(opre,feip);
-				if(cidHist4==null)break;
-				isValid = cidParser.parseCidInfo(esClient,cidHist4);	
-				if(isValid)esClient.index(i->i.index(Indices.CidHistIndex).id(cidHist4.getId()).document(cidHist4));
+				IdentityHistory identityHist4 = identityParser.makeAbandon(opre,feip);
+				if(identityHist4==null)break;
+				isValid = identityParser.parseCidInfo(esClient,identityHist4);	
+				if(isValid)esClient.index(i->i.index(Indices.IdentityHistIndex).id(identityHist4.getId()).document(identityHist4));
 				break;
 			case MASTER:
 				System.out.println("master.");
-				IdentityHistory cidHist1 = cidParser.makeMaster(opre,feip);
-				if(cidHist1==null)break;
-				isValid = cidParser.parseCidInfo(esClient,cidHist1);	
-				if(isValid)esClient.index(i->i.index(Indices.CidHistIndex).id(cidHist1.getId()).document(cidHist1));
+				IdentityHistory identityHist1 = identityParser.makeMaster(opre,feip);
+				if(identityHist1==null)break;
+				isValid = identityParser.parseCidInfo(esClient,identityHist1);	
+				if(isValid)esClient.index(i->i.index(Indices.IdentityHistIndex).id(identityHist1.getId()).document(identityHist1));
 				break;
 			case HOMEPAGE:
 				System.out.println("homepage.");
-				IdentityHistory cidHist2 = cidParser.makeHomepage(opre,feip);
-				if(cidHist2==null)break;
-				isValid = cidParser.parseCidInfo(esClient,cidHist2);	
-				if(isValid)esClient.index(i->i.index(Indices.CidHistIndex).id(cidHist2.getId()).document(cidHist2));
+				IdentityHistory identityHist2 = identityParser.makeHomepage(opre,feip);
+				if(identityHist2==null)break;
+				isValid = identityParser.parseCidInfo(esClient,identityHist2);	
+				if(isValid)esClient.index(i->i.index(Indices.IdentityHistIndex).id(identityHist2.getId()).document(identityHist2));
 				break;
 			case NOTICE_FEE:
 				System.out.println("notice fee.");
-				IdentityHistory cidHist3 = cidParser.makeNoticeFee(opre,feip);
-				if(cidHist3==null)break;
-				isValid = cidParser.parseCidInfo(esClient,cidHist3);	
-				if(isValid)esClient.index(i->i.index(Indices.CidHistIndex).id(cidHist3.getId()).document(cidHist3));
+				IdentityHistory identityHist3 = identityParser.makeNoticeFee(opre,feip);
+				if(identityHist3==null)break;
+				isValid = identityParser.parseCidInfo(esClient,identityHist3);	
+				if(isValid)esClient.index(i->i.index(Indices.IdentityHistIndex).id(identityHist3.getId()).document(identityHist3));
 				break;
 			case REPUTATION:
 				System.out.println("reputation.");
-				RepuHistory repuHist = cidParser.makeReputation(opre,feip);
+				RepuHistory repuHist = identityParser.makeReputation(opre,feip);
 				if(repuHist==null)break;
-				isValid = cidParser.parseReputation(esClient,repuHist);
+				isValid = identityParser.parseReputation(esClient,repuHist);
 				if(isValid)esClient.index(i->i.index(Indices.RepuHistIndex).id(repuHist.getId()).document(repuHist));
 				break;
 			case PROTOCOL:
@@ -255,10 +255,7 @@ public class FileParser {
 				break;
 			case P2SH:
 				System.out.println("P2SH.");
-				IdentityHistory cidHist5 = cidParser.makeP2SH(opre,feip);
-				if(cidHist5==null)break;
-				isValid = cidParser.parseP2SH(esClient,cidHist5);	
-				if(isValid)esClient.index(i->i.index(Indices.CidHistIndex).id(cidHist5.getId()).document(cidHist5));
+				identityParser.parseP2SH(esClient,opre,feip);
 				break;
 			default:
 				break;
@@ -400,7 +397,7 @@ public class FileParser {
 			EsTools.bulkDeleteList(esClient, Indices.CidIndex, (ArrayList<String>) idList);
 			TimeUnit.SECONDS.sleep(2);
 			
-			ArrayList<IdentityHistory> reparseCidList = getReparseHistList(esClient,Indices.CidHistIndex,idList,"signer",IdentityHistory.class);
+			ArrayList<IdentityHistory> reparseCidList = getReparseHistList(esClient,Indices.IdentityHistIndex,idList,"signer",IdentityHistory.class);
 			
 			for(IdentityHistory idHist: reparseCidList) {
 				new IdentityParser().parseCidInfo(esClient,idHist);

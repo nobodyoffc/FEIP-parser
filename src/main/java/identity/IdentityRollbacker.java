@@ -30,8 +30,17 @@ public class IdentityRollbacker {
 		error = rollbackCid(esClient,height);
 		
 		error = rollbackRepu(esClient,height);
+		
+		error = rollbackP2SH(esClient,height);
 
 		return error;
+	}
+
+	private boolean rollbackP2SH(ElasticsearchClient esClient, long height) throws ElasticsearchException, IOException {
+		// TODO Auto-generated method stub
+		
+		esClient.deleteByQuery(d->d.index(Indices.P2SHIndex).query(q->q.range(r->r.field("birthHeight").gt(JsonData.of(height)))));
+		return false;
 	}
 
 	private boolean rollbackCid(ElasticsearchClient esClient, long height) throws Exception {
@@ -48,11 +57,11 @@ public class IdentityRollbacker {
 		
 		deleteEffectedCids(esClient, signerList);
 		
-		deleteRolledHists(esClient,Indices.CidHistIndex,histIdList);
+		deleteRolledHists(esClient,Indices.IdentityHistIndex,histIdList);
 		
 		TimeUnit.SECONDS.sleep(3);
 		
-		List<IdentityHistory>reparseList = 	EsTools.getHistsForReparse(esClient,Indices.CidHistIndex,"signer",signerList, IdentityHistory.class);
+		List<IdentityHistory>reparseList = 	EsTools.getHistsForReparse(esClient,Indices.IdentityHistIndex,"signer",signerList, IdentityHistory.class);
 ;
 		
 		reparse(esClient,reparseList);
@@ -64,7 +73,7 @@ public class IdentityRollbacker {
 		// TODO Auto-generated method stub
 		
 		SearchResponse<IdentityHistory> resultSearch = esClient.search(s->s
-				.index(Indices.CidHistIndex)
+				.index(Indices.IdentityHistIndex)
 				.query(q->q
 						.range(r->r
 								.field("height")

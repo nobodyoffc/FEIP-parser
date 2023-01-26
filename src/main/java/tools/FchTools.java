@@ -124,30 +124,32 @@ public class FchTools {
 			  return "04"+PK33.substring(2)+BytesTools.bytesToHexStringBE(y.toByteArray());
 			  }else return null;
 		  }
+
 	public static byte[] recoverPK33ToPK65(byte[] PK33) {
 		String str = BytesTools.bytesToHexStringBE(PK33);
 		return BytesTools.hexToByteArray(recoverPK33ToPK65(str));
 		  }
 
-	public static String compressPK65ToPK33(String strPK65) {
+//	public static String compressPK65ToPK33(String strPK65) {
+//
+//
+//		byte[] pk65 = BytesTools.hexToByteArray(strPK65);
+//		byte[] pk33 = new byte[33];
+//		byte[] y = new byte[32];
+//		System.arraycopy(pk65, 1, pk33 , 1, 32);
+//		System.arraycopy(pk65, 33, y , 0, 32);
+//		BigInteger Y = new BigInteger(y);
+//		BigInteger TWO = new BigInteger("2");
+//		BigInteger ZERO = new BigInteger("0");
+//		if(Y.mod(TWO) == ZERO ) {
+//			pk33[0]=0x02;
+//			}else { 
+//				pk33[0]=0x03;
+//				}
+//		String PK33 =BytesTools.bytesToHexStringLE(BytesTools.invertArray(pk33)) ;
+//		return PK33;
+//		}
 
-
-		byte[] pk65 = BytesTools.hexToByteArray(strPK65);
-		byte[] pk33 = new byte[33];
-		byte[] y = new byte[32];
-		System.arraycopy(pk65, 1, pk33 , 1, 32);
-		System.arraycopy(pk65, 33, y , 0, 32);
-		BigInteger Y = new BigInteger(y);
-		BigInteger TWO = new BigInteger("2");
-		BigInteger ZERO = new BigInteger("0");
-		if(Y.mod(TWO) == ZERO ) {
-			pk33[0]=0x02;
-			}else { 
-				pk33[0]=0x03;
-				}
-		String PK33 =BytesTools.bytesToHexStringLE(BytesTools.invertArray(pk33)) ;
-		return PK33;
-		}
 	public static String compressPK65ToPK33(byte[] bytesPK65) {
 		byte[] pk33 = new byte[33];
 		byte[] y = new byte[32];
@@ -181,6 +183,7 @@ public class FchTools {
  		
 		return Base58.base58Encode(addrRaw);
 	}
+
 	public static String hash160ToFCHAddr(byte[] hash160Bytes) {
 		
 		byte[] prefixForFch = {0x23};
@@ -321,6 +324,7 @@ public class FchTools {
 		String address = FchTools.hash160ToFCHAddr(h);
 		return address;
 	}
+
 	public static String pubKeyToFchAddr(byte[] a) {	
 		byte[] b = Hash.Sha256(a);		
 		byte[] h = Hash.Ripemd160(b);
@@ -426,7 +430,7 @@ public class FchTools {
 			priKey32Bytes=BytesTools.hexToByteArray(priKey);
 			break;
 		case 52:
-			if(! (priKey.substring(0, 1).equals("L")||priKey.substring(0, 1).equals("L"))) {
+			if(! (priKey.substring(0, 1).equals("L")||priKey.substring(0, 1).equals("K"))) {
 				System.out.println("It's not a private key.");
 				return null;
 			}

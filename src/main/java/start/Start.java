@@ -100,9 +100,11 @@ public class Start {
 					delete = sc.next();			
 					if (delete.equals("y")) {	
 		
+						System.out.println("Deleting indices...");	
 						Indices.deleteAllIndices(esClient);
 						TimeUnit.SECONDS.sleep(3);
 						
+						System.out.println("Creating indices...");	
 						Indices.createAllIndices(esClient);
 						TimeUnit.SECONDS.sleep(2);
 						

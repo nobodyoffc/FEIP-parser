@@ -1,6 +1,9 @@
 package identity;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -16,6 +19,7 @@ import opReturn.Feip;
 import opReturn.OpReturn;
 import start.Indices;
 import start.Start;
+import tools.BytesTools;
 import tools.FchTools;
 import tools.ParseTools;
 
@@ -49,26 +53,6 @@ public class IdentityParser {
 			}
 		}else return null;
 		
-		return cidHist; 
-	}
-	
-	public IdentityHistory makeP2SH(OpReturn opre, Feip feip) {
-		// TODO Auto-generated method stub
-		Gson gson = new Gson();
-		P2SHRaw p2SHRaw = gson.fromJson(gson.toJson(feip.getData()),P2SHRaw.class);
-		if(! FchTools.scriptToMultiAddr(p2SHRaw.getScript()).equals(opre.getSigner()))return null;
-		
-		IdentityHistory cidHist = new IdentityHistory();
-		
-		cidHist.setSigner(opre.getSigner());
-		cidHist.setSn(feip.getSn());
-		cidHist.setVer(feip.getVer());
-		cidHist.setHeight(opre.getHeight());
-		cidHist.setId(opre.getId());
-		cidHist.setIndex(opre.getTxIndex());
-		cidHist.setTime(opre.getTime());
-		cidHist.setData_script(p2SHRaw.getScript());
-	
 		return cidHist; 
 	}
 
@@ -205,7 +189,7 @@ public class IdentityParser {
 		if(cidHist.getSn().equals("6"))return parseMaster(esClient, cidHist);
 		if(cidHist.getSn().equals("9"))return parseHomepage(esClient, cidHist);
 		if(cidHist.getSn().equals("10"))return parseNoticeFee(esClient, cidHist);
-		if(cidHist.getSn().equals("20"))return parseP2SH(esClient, cidHist);
+
 		return false;
 	}
 
@@ -438,27 +422,68 @@ public class IdentityParser {
 		return isValid;
 	}
 
-	public boolean parseP2SH(ElasticsearchClient esClient, IdentityHistory cidHist) throws ElasticsearchException, IOException {
+	public void parseP2SH(ElasticsearchClient esClient, OpReturn opre, Feip feip) throws ElasticsearchException, IOException {
 		// TODO Auto-generated method stub
-		boolean isValid = false;
-		GetResponse<Cid> resultGetCid = esClient.get(g->g.index(Indices.CidIndex).id(cidHist.getSigner()), Cid.class);
+		Gson gson = new Gson();
+		P2SHRaw p2shRaw = gson.fromJson(gson.toJson(feip.getData()),P2SHRaw.class);
+		if(! FchTools.scriptToMultiAddr(p2shRaw.getScript()).equals(opre.getSigner()))return;
 		
-		if(resultGetCid.found()) {
-			Cid cid  = resultGetCid.source();	
-			if(cid.getScript()==null) {
-				cid.setScript(cidHist.getData_script());
-				cid.setLastHeight(cidHist.getHeight());
-				esClient.index(i->i.index(Indices.CidIndex).id(cidHist.getSigner()).document(cid));
-				isValid = true;
-			}
-		}else {
-			Cid cid = new Cid();
-			cid.setId(cidHist.getSigner());
-			cid.setScript(cidHist.getData_script());
-			cid.setLastHeight(cidHist.getHeight());
-			esClient.index(i->i.index(Indices.CidIndex).id(cidHist.getSigner()).document(cid));
-			isValid = true;
+		GetResponse<P2SH> resultGetP2SH = esClient.get(g->g.index(Indices.P2SHIndex).id(opre.getSigner()), P2SH.class);
+		
+		if(resultGetP2SH.found())return;
+		
+		P2SH p2sh = new P2SH();
+		
+		p2sh.setId(opre.getSigner());
+		
+		String script = p2shRaw.getScript();
+		
+		Multisig mutiSig = parseMultiSigScript(script);
+		
+		p2sh.setId(opre.getSigner());
+		p2sh.setRedeemScript(p2shRaw.getScript());
+		p2sh.setM(mutiSig.getM());
+		p2sh.setN(mutiSig.getN());
+		p2sh.setPubKeys(mutiSig.getPubKeys());
+		p2sh.setBirthHeight(opre.getHeight());
+		p2sh.setBirthTime(opre.getTime());
+		p2sh.setBirthTxid(opre.getId());
+
+		return;
+	}
+
+	public Multisig parseMultiSigScript(String script) throws IOException {
+		// TODO Auto-generated method stub
+		
+		if(! script.substring(script.length()-2).equals("ae"))return null;
+		
+		InputStream scriptIs = new ByteArrayInputStream(script.getBytes());
+		
+		int b = scriptIs.read();
+		int m = b-80;
+		
+		if(m>16 || m<0)return null;
+		
+		ArrayList<String> pukList = new ArrayList<String>();
+
+		while(true) {
+			b = scriptIs.read();
+			int pkLen = b;
+			if(pkLen>80 && pkLen<96)break;
+			if(pkLen!=33 && pkLen!=65)return null;
+			byte[] pkBytes = new byte[pkLen];
+			scriptIs.read(pkBytes);
+			pukList.add(BytesTools.bytesToHexStringBE(pkBytes));
 		}
-		return isValid;
+
+		int n = b-80;
+		
+		Multisig multiSig = new Multisig	();
+		
+		multiSig.setM(m);
+		multiSig.setN(n);
+		multiSig.setPubKeys(pukList.toArray(new String[pukList.size()]));
+		
+		return multiSig;
 	}
 }
