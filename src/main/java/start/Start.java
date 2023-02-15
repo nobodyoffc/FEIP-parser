@@ -39,18 +39,22 @@ public class Start {
 		
 		boolean end = false;
 		ElasticsearchClient esClient = null;
+		System.out.println(" << FEIP parser >> pre version 2023.1.17\n");
 		while(!end) {
 			configer.initial();
 			
 			System.out.println(
-					" << FEIP parser >> pre version 2023.1.17\n\n"	
+					"	-----------------------------\n"
+					+ "	Menu\n"
+					+ "	-----------------------------\n"
 					+"	1 Create a Java HTTP client\n"
 					+"	2 Create a Java HTTPS client\n"
 					+"	3 Start New Parse from file\n"
 					+"	4 Restart from interruption\n"
 					+"	5 Manual start from a height\n"
 					+"	6 Reparse ID list\n"
-					+"	0 exit"
+					+"	0 Exit\n"
+					+ "	-----------------------------"
 					);	
 			
 			int choice = choose(sc);

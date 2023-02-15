@@ -34,8 +34,11 @@ public class mainTest {
 //		
 //		System.out.println("addr:" + addr);
 		
+		String prikey = "KyCzHvuyLRwqUcBHfSAhw8iu1eVoYb57enbL4uyh7WmC9hC5RNSc";
 		
-		System.out.println("hash:" + Hash.Sha256("39c07664d5565a79db87d5a705f13c5712d4cea0f25b7b8df0c01414def1426f"));
+		
+		System.out.println(tools.FchTools.getPriKey32(prikey));
+		
 
 		//esClient.shutdown();
 

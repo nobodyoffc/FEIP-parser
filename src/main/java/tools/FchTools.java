@@ -510,7 +510,7 @@ public class FchTools {
 			priKey32Bytes=BytesTools.hexToByteArray(priKey);
 			break;
 		case 52:
-			if(! (priKey.substring(0, 1).equals("L")||priKey.substring(0, 1).equals("L"))) {
+			if(! (priKey.substring(0, 1).equals("L")||priKey.substring(0, 1).equals("K"))) {
 				System.out.println("It's not a private key.");
 				return null;
 			}

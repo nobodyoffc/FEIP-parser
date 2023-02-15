@@ -13,8 +13,9 @@ public class Cid {
 	private long reputation;
 	private long hot;
 	private long nameTime;
-	
 	private long lastHeight;
+	
+	
 
 	public String getId() {
 		return id;
@@ -111,7 +112,5 @@ public class Cid {
 	public void setScript(String script) {
 		this.script = script;
 	}
-	
-
 	
 }
