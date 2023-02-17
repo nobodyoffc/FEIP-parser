@@ -1,5 +1,6 @@
 package esClient;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -30,6 +31,48 @@ public class StartClient{
 	
 	static final Logger log = LoggerFactory.getLogger(StartClient.class);
 
+	public ElasticsearchClient createEsClient(Configer configer, Scanner sc, BufferedReader br, ElasticsearchClient esClient) throws IOException {
+		// TODO Auto-generated method stub
+		
+		if(esClient!=null) return esClient;
+		
+		if(configer.getEsIp()==null || configer.getEsPort() == 0) 
+			configer = configer.configEs(sc,br);
+		
+		if(configer.getEsUsername()==null) {
+			System.out.println("creatHttpClient");
+
+			try {
+				esClient = getClientHttp(configer);
+				
+				if(esClient != null) {
+					System.out.println("Client has been created: "+esClient.toString());
+					log.info("Client has been created:{} ",esClient.toString());
+				}else {
+					System.out.println("\n******!Create ES client failed!******\n");
+				}
+			} catch (ElasticsearchException | IOException e) {
+				// TODO Auto-generated catch block
+				log.info("Create esClient wrong",e);
+				return null;
+			}	
+		}else{
+			System.out.println("creatHttpsClient.");
+
+			try {
+				esClient = getClientHttps(configer, sc);
+				System.out.println(esClient.info());
+			} catch (KeyManagementException | ElasticsearchException | NoSuchAlgorithmException | IOException e) {
+				// TODO Auto-generated catch block
+				log.info("Create esClient wrong",e);
+				return null;
+			}
+		}
+		return esClient;
+	}
+
+
+	
 	public ElasticsearchClient getClientHttp(start.Configer configer) throws ElasticsearchException, IOException {
 		
 		System.out.println("Creating a client...");
@@ -38,7 +81,7 @@ public class StartClient{
 		
 		// Create a client without authentication check
 		restClient = RestClient.builder(
-				new HttpHost(configer.getIp(), configer.getPort()))
+				new HttpHost(configer.getEsIp(), configer.getEsPort()))
 				.setRequestConfigCallback(new RestClientBuilder.RequestConfigCallback() {
 		        	@Override
 					public RequestConfig.Builder customizeRequestConfig(
@@ -67,7 +110,7 @@ public class StartClient{
 
 	public ElasticsearchClient getClientHttps(Configer configer,Scanner sc) throws ElasticsearchException, IOException, NoSuchAlgorithmException, KeyManagementException{
 		
-		System.out.println("Input the password of user '"+configer.getUsername()+"':");
+		System.out.println("Input the password of user '"+configer.getEsUsername()+"':");
 		
 		String password = sc.next();
 		
@@ -75,9 +118,9 @@ public class StartClient{
 		
 	    final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
 	    
-        credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(configer.getUsername(), password));
+        credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(configer.getEsUsername(), password));
         
-		restClient = RestClient.builder(new HttpHost(configer.getIp(), configer.getPort(),"https"))
+		restClient = RestClient.builder(new HttpHost(configer.getEsIp(), configer.getEsPort(),"https"))
 				.setHttpClientConfigCallback(h ->h.setDefaultCredentialsProvider(credentialsProvider))
 				.setRequestConfigCallback(new RestClientBuilder.RequestConfigCallback() {
 		        	@Override

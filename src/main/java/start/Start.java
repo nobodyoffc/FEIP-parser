@@ -3,8 +3,6 @@ package start;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
@@ -15,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.Gson;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch._types.ElasticsearchException;
 import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.json.JsonData;
@@ -26,7 +23,7 @@ public class Start {
 	public static long CddCheckHeight=2000000;
 	public static long CddRequired=1;
 	
-	private static int MenuItemsNum =6;
+	private static int MenuItemsNum =4;
 	private static final Logger log = LoggerFactory.getLogger(Start.class);
 	private static StartClient startClient = new StartClient();
 	
@@ -42,57 +39,30 @@ public class Start {
 		System.out.println(" << FEIP parser >> pre version 2023.1.17\n");
 		while(!end) {
 			configer.initial();
+
+			esClient = startClient.createEsClient(configer, sc, br,esClient);
+			
+			if(configer.getOpReturnJsonPath()==null) configer.configOpReturnJsonPath(br);
 			
 			System.out.println(
 					"	-----------------------------\n"
 					+ "	Menu\n"
 					+ "	-----------------------------\n"
-					+"	1 Create a Java HTTP client\n"
-					+"	2 Create a Java HTTPS client\n"
-					+"	3 Start New Parse from file\n"
-					+"	4 Restart from interruption\n"
-					+"	5 Manual start from a height\n"
-					+"	6 Reparse ID list\n"
+					+"	1 Start New Parse from file\n"
+					+"	2 Restart from interruption\n"
+					+"	3 Manual start from a height\n"
+					+"	4 Reparse ID list\n"
 					+"	0 Exit\n"
 					+ "	-----------------------------"
 					);	
 			
 			int choice = choose(sc);
 			
-			String path = configer.getPath();
+			String opReturnJsonPath = configer.getOpReturnJsonPath()+"/";
 			long bestHeight = 0;
 			switch(choice) {
-			case 1:
-				if(configer.getIp()==null || configer.getPort() == 0 || configer.getPath()==null) {
-					configer.configHttp(sc,br);
-					configer.initial();
-				}
-				
-				esClient = creatHttpClient(configer);
-				
-				if(esClient != null) {
-					System.out.println("Client has been created: "+esClient.toString());
-					log.info("Client has been created:{} ",esClient.toString());
-				}else {
-					System.out.println("\n******!Create ES client failed!******\n");
-				}
-				break;
-			case 2:
-				if(configer.getIp()==null || configer.getPort() == 0|| configer.getUsername()==null|| configer.getPath()==null) {
-					configer.configHttps(sc,br);
-					configer.initial();
-				}
-				
-				esClient = creatHttpsClient(configer,sc);
-				
-				if(esClient != null) {
-					System.out.println("Client has been created: "+esClient.toString());
-					log.info("Client has been created:{} ",esClient.toString());
-				}else {
-					System.out.println("\n******!Create ES client failed!******\n");
-				}
-				break;
-			case 3: 
+
+			case 1: 
 				if(esClient==null) {
 					System.out.println("Create a Java client for ES first.");
 					break;
@@ -112,20 +82,20 @@ public class Start {
 						Indices.createAllIndices(esClient);
 						TimeUnit.SECONDS.sleep(2);
 						
-						end = startNewFromFile(esClient,path);
+						end = startNewFromFile(esClient,opReturnJsonPath);
 						
 						break;
 					}else break;
 				}else break;
 				
-			case 4: 
+			case 2: 
 				if(esClient==null) {
 					System.out.println("Create a Java client for ES first.");
 					break;
 				}
-				end = restartFromFile(esClient,path);
+				end = restartFromFile(esClient,opReturnJsonPath);
 				break;
-			case 5: 
+			case 3: 
 				if(esClient==null) {
 					System.out.println("Create a Java client for ES first.");
 					break;
@@ -136,9 +106,9 @@ public class Start {
 					sc.next();
 				}
 				bestHeight = sc.nextLong();
-				end = manualRetartFromFile(esClient,path,bestHeight);
+				end = manualRetartFromFile(esClient,opReturnJsonPath,bestHeight);
 				break;
-			case 6: 
+			case 4: 
 				System.out.println("Input the name of ES index:");
 				String index = sc.next();
 				System.out.println("Input the ID list in compressed Json string:");
@@ -180,46 +150,7 @@ public class Start {
 		return choice;
 	}
 	
-	private static ElasticsearchClient creatHttpClient(start.Configer configer) throws ElasticsearchException, IOException {
-		// TODO Auto-generated method stub
-		System.out.println("creatHttpClient");
-
-		ElasticsearchClient esClient = null;
-		try {
-			esClient = startClient.getClientHttp(configer);
-			System.out.println(esClient.info());
-		} catch (ElasticsearchException | IOException e) {
-			// TODO Auto-generated catch block
-			log.info("Create esClient wrong",e);
-			return null;
-		}
-			
-		return esClient;
-	}
-
-	private static ElasticsearchClient creatHttpsClient(Configer configer,Scanner sc)  {
-		// TODO Auto-generated method stub
-		System.out.println("creatHttpsClient.");
-
-		ElasticsearchClient esClient = null;
-		try {
-			esClient = startClient.getClientHttps(configer, sc);
-			System.out.println(esClient.info());
-		} catch (KeyManagementException | ElasticsearchException | NoSuchAlgorithmException | IOException e) {
-			// TODO Auto-generated catch block
-			log.info("Create esClient wrong",e);
-			return null;
-		}
-		
-		return esClient;
-	}
-
 	private static boolean startNewFromFile(ElasticsearchClient esClient, String path) throws Exception {
-		
-//		if(esClient==null) {
-//			System.out.println("Create a Java client for ES first.");
-//			return false;
-//		}
 		
 		System.out.println("startNewFromFile.");
 		
@@ -311,7 +242,5 @@ public class Start {
 		// TODO Auto-generated method stub
 		
 	}
-	
-	
 }
 
