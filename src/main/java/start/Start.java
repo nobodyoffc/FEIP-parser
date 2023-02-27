@@ -23,7 +23,7 @@ public class Start {
 	public static long CddCheckHeight=2000000;
 	public static long CddRequired=1;
 	
-	private static int MenuItemsNum =4;
+	private static int MenuItemsNum =5;
 	private static final Logger log = LoggerFactory.getLogger(Start.class);
 	private static StartClient startClient = new StartClient();
 	
@@ -52,6 +52,7 @@ public class Start {
 					+"	2 Restart from interruption\n"
 					+"	3 Manual start from a height\n"
 					+"	4 Reparse ID list\n"
+					+"	5 Config\n"
 					+"	0 Exit\n"
 					+ "	-----------------------------"
 					);	
@@ -120,6 +121,9 @@ public class Start {
 				//}
 				FileParser fileParser = new FileParser();			
 				fileParser.reparseIdList(esClient, index,idList);
+				break;
+			case 5:
+				new Configer().configEs(sc,br);
 				break;
 			case 0: 
 				if(esClient!=null)startClient.shutdownClient();

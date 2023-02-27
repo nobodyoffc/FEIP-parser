@@ -44,10 +44,12 @@ public class StartClient{
 
 			try {
 				esClient = getClientHttp(configer);
-				
-				if(esClient != null) {
+
+				String cluster = esClient.info().clusterName();
+
+				if(cluster!=null) {
 					System.out.println("Client has been created: "+esClient.toString());
-					log.info("Client has been created:{} ",esClient.toString());
+					log.info("Client has been created. Cluster name: {} ", cluster);
 				}else {
 					System.out.println("\n******!Create ES client failed!******\n");
 				}
@@ -61,7 +63,14 @@ public class StartClient{
 
 			try {
 				esClient = getClientHttps(configer, sc);
-				System.out.println(esClient.info());
+				String cluster = esClient.info().clusterName();
+
+				if(cluster!=null) {
+					System.out.println("Client has been created: "+esClient.toString());
+					log.info("Client has been created. Cluster name: {} ", cluster);
+				}else {
+					System.out.println("\n******!Create ES client failed!******\n");
+				}
 			} catch (KeyManagementException | ElasticsearchException | NoSuchAlgorithmException | IOException e) {
 				// TODO Auto-generated catch block
 				log.info("Create esClient wrong",e);

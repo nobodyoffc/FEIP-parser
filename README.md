@@ -2,13 +2,13 @@
 
 ## What's FEIP Parser
 
-FEIP Parser is a program to parse FEIP data on freecash blockchain to Elasticsearch.
+FEIP Parser is a program to parse FEIP orderData on freecash blockchain to Elasticsearch.
 
 ## Install
 
 1. Installing FEIP parser only needs copy it to your device.
 
-2. Before running FEIP parser，you have to sure freecash full node, Elasticsearch, java, and FreeChain was installed, running, and  got all data ready.
+2. Before running FEIP parser，you have to sure freecash full node, Elasticsearch, java, and FreeChain was installed, running, and  got all orderData ready.
 
 3. Get the path of opreturn0.byte. It is located in the path of FreeChain.
 

@@ -15,8 +15,8 @@ public class Configer {
 	private String esUsername;
 	private String opReturnJsonPath;
 	private String tomcatStartCommand;
-	private int redisPort;
-	private String redisHost;
+	private int redisPort=6379;
+	private String redisHost="127.0.0.1";
 	
 	public void initial() throws IOException {
 
@@ -46,6 +46,7 @@ public class Configer {
 			redisHost = configer.getRedisHost();
 			
 			System.out.println("Initialized:");
+			System.out.println(configFile.getAbsolutePath());
 			tools.ParseTools.gsonPrint(configer);
 			fis.close();
 		}
@@ -64,7 +65,7 @@ public class Configer {
 		while(true) {
 			setEsIp(br.readLine());
 			if (getEsIp().matches("((25[0-5]|2[0-4]\\d|((1\\d{2})|([1-9]?\\d)))\\.){3}(25[0-5]|2[0-4]\\d|((1\\d{2})|([1-9]?\\d)))"))break;
-			System.out.println("It must be a IPaddress, like \"100.102.102.10\". Input again.");
+			System.out.println("It must be a IP address, like \"100.102.102.10\". Input again.");
 		}
 		
 		System.out.println("Input the port of ES server:");

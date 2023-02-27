@@ -288,16 +288,9 @@ public class FileParser {
 	private Feip parseFeip(OpReturn opre) {
 		// TODO Auto-generated method stub
 		if(opre.getOpReturn()==null)return null;
-		
-		String rawProt = opre.getOpReturn();
-		
-		if(!rawProt.contains("{")) return null;
-		
-		int begin = rawProt.indexOf("{");	
-		String protStr = rawProt.substring(begin);
-		
-		protStr.replaceAll("\r|\n|\t", "");
-		
+
+		String protStr = tools.ParseTools.strToJson(opre.getOpReturn());
+
 		Feip prot = null;
 		try {
 			prot = new Gson().fromJson(protStr, Feip.class);
