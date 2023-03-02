@@ -1,9 +1,12 @@
 package xtest;
 
+import java.security.SignatureException;
 import java.util.List;
 import java.util.Map;
 
+import org.bitcoinj.core.ECKey;
 import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,6 +82,20 @@ public class mainTest {
 //                								.field(queryField).gt(JsonData.of(value))))))
 //                , clazz);
 
+	}
+	@Test
+	public void sign() throws SignatureException {
+		String addr = "FEk41Kqjar45fLDriztUDTUkdki7mmcjWK";
+		String pubKey = "030be1d7e633feb2338a74a860e76d893bac525f35a5813cb7b21e27ba1bc8312a";
+		String message = "test";
+		String signature = "HzNqRToLHsY6TrhVB+RjWuk7PqeJhUESINxcL0521mWqU3+rw+NeIGNnOV06ngCLwHD69jCfqHcXWCXuCnIkCGo\u003d";
+		byte[] pubKeyBytes = BytesTools.hexToByteArray (pubKey);
+		ECKey ecKey = ECKey.fromPublicOnly(pubKeyBytes);
+
+		String signPubKey = ECKey.signedMessageToKey(message, signature).getPublicKeyAsHex();
+		System.out.println("sign public key: "+ signPubKey);
+
+		// ecKey.verify();
 	}
 	
 }
